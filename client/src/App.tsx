@@ -1,4 +1,4 @@
-import { AnimatePresence, LazyMotion, MotionConfig, domAnimation } from 'motion/react';
+﻿import { AnimatePresence, LazyMotion, MotionConfig, domAnimation } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { AudioToggle } from './audio/AudioToggle';
 import { spotifyTrackId } from './audio/config';
@@ -11,9 +11,11 @@ import { warmUpApi } from './services/api';
 import { Engagement } from './sections/Engagement';
 import { Footer } from './sections/Footer';
 import { Hero } from './sections/Hero';
+import { CivilChapter } from './sections/CivilChapter';
 import { Intro } from './sections/Intro';
+import { NightChapter } from './sections/NightChapter';
+import { PhotosChapter } from './sections/PhotosChapter';
 import { Invitation } from './sections/Invitation';
-import { Location } from './sections/Location';
 import { Rsvp } from './sections/Rsvp';
 
 const spotifyTrack = spotifyTrackId();
@@ -55,7 +57,9 @@ export default function App() {
           <Hero started={started} />
           <Engagement />
           <Invitation />
-          <Location />
+          <CivilChapter />
+          <PhotosChapter />
+          <NightChapter />
           <Rsvp onOpen={() => setRsvpOpen(true)} />
           <Footer />
         </main>

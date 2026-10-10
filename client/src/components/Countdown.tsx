@@ -1,4 +1,4 @@
-import { AnimatePresence, m } from 'motion/react';
+﻿import { AnimatePresence, m } from 'motion/react';
 import { INVITE } from '../config/invite';
 import { useCountdown } from '../hooks/useCountdown';
 
@@ -11,7 +11,7 @@ const UNITS = [
 
 /** Contagem regressiva editorial: numerais serifados separados por fios finos. */
 export function Countdown() {
-  const c = useCountdown(INVITE.ceremony.iso);
+  const c = useCountdown(INVITE.civil.iso);
 
   if (c.phase !== 'before') {
     return (

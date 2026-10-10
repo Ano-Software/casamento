@@ -30,17 +30,21 @@ const formatDate = (d: Date) =>
   }).format(d);
 
 function buildContent(r: RsvpRecord) {
-  const answer = r.attending ? 'Confirmou presença' : 'Não poderá comparecer';
+  const yesNo = (v: boolean) => (v ? 'Sim, participará' : 'Não participará');
+  const attendsAny = r.civil || r.photos || r.dinner;
+  const answer = attendsAny ? 'Confirmou presença' : 'Não poderá participar de nenhum momento';
   const rows: [string, string][] = [
     ['Convidado', r.fullName],
-    ['Resposta', answer],
+    ['Casamento civil', yesNo(r.civil)],
+    ['Sessão de fotos', yesNo(r.photos)],
+    ['Encontro noturno', yesNo(r.dinner)],
   ];
-  if (env.rsvp.allowCompanions && r.attending) rows.push(['Acompanhantes', String(r.companions)]);
+  if (env.rsvp.allowCompanions && attendsAny) rows.push(['Acompanhantes', String(r.companions)]);
   rows.push(['Enviado em', `${formatDate(r.createdAt)} (horário de Brasília)`]);
 
   const text = [`${SUBJECT}`, '', ...rows.map(([k, v]) => `${k}: ${v}`)].join('\n');
 
-  const accent = r.attending ? '#7a6340' : '#7d7368';
+  const accent = attendsAny ? '#7a6340' : '#7d7368';
   const html = `<!doctype html>
 <html lang="pt-BR"><body style="margin:0;padding:0;background:#f5f0e8;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:32px 16px;">

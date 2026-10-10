@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent 
 import { ApiError, fetchRsvpConfig, submitRsvp, type RsvpConfig } from '../services/api';
 import { uuid } from '../lib/uuid';
 import { EASE_CINE } from '../lib/motion';
+import { INVITE } from '../config/invite';
 
 interface Props {
   open: boolean;
@@ -22,16 +23,28 @@ const SUCCESS = {
   },
 };
 
-type Errors = Partial<Record<'fullName' | 'attending' | 'companions', string>>;
+/** Os três momentos do dia, perguntados de forma independente. */
+const QUESTIONS = [
+  { key: 'civil', title: 'Casamento civil', hint: `I · ${INVITE.civil.time}` },
+  { key: 'photos', title: 'Sessão de fotos', hint: 'II · Em seguida' },
+  { key: 'dinner', title: 'Encontro noturno', hint: 'III · À noite' },
+] as const;
 
-function validate(name: string, attending: boolean | null, companions: number, cfg: RsvpConfig): Errors {
+type MomentKey = (typeof QUESTIONS)[number]['key'];
+type Answers = Record<MomentKey, boolean | null>;
+const EMPTY_ANSWERS: Answers = { civil: null, photos: null, dinner: null };
+
+type Errors = Partial<Record<'fullName' | MomentKey | 'companions', string>>;
+
+function validate(name: string, answers: Answers, companions: number, cfg: RsvpConfig): Errors {
   const errors: Errors = {};
   const clean = name.replace(/\s+/g, ' ').trim();
   if (clean.length < 3 || (clean.match(/\p{L}/gu) ?? []).length < 3) errors.fullName = 'Informe seu nome completo.';
   else if (clean.length > 120) errors.fullName = 'Use no máximo 120 caracteres.';
   else if (!NAME_PATTERN.test(clean)) errors.fullName = 'Use apenas letras, espaços, hífen ou apóstrofo.';
-  if (attending === null) errors.attending = 'Escolha uma das opções.';
-  if (cfg.allowCompanions && attending && (companions < 0 || companions > cfg.maxCompanions)) {
+  for (const q of QUESTIONS) if (answers[q.key] === null) errors[q.key] = 'Escolha sim ou não.';
+  const attendsAny = QUESTIONS.some((q) => answers[q.key]);
+  if (cfg.allowCompanions && attendsAny && (companions < 0 || companions > cfg.maxCompanions)) {
     errors.companions = `O limite é de ${cfg.maxCompanions} acompanhante(s).`;
   }
   return errors;
@@ -46,7 +59,8 @@ export function RsvpModal({ open, onClose }: Props) {
 
   const [config, setConfig] = useState<RsvpConfig>({ allowCompanions: false, maxCompanions: 0 });
   const [fullName, setFullName] = useState('');
-  const [attending, setAttending] = useState<boolean | null>(null);
+  const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS);
+  const attendsAny = QUESTIONS.some((q) => answers[q.key]);
   const [companions, setCompanions] = useState(0);
   const [website, setWebsite] = useState('');
   const [errors, setErrors] = useState<Errors>({});
@@ -66,7 +80,7 @@ export function RsvpModal({ open, onClose }: Props) {
       // Nova resposta (ex.: outra pessoa da família) após um envio concluído.
       setDone(null);
       setFullName('');
-      setAttending(null);
+      setAnswers(EMPTY_ANSWERS);
       setCompanions(0);
       requestId.current = uuid();
     }
@@ -113,7 +127,7 @@ export function RsvpModal({ open, onClose }: Props) {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (sending) return;
-    const found = validate(fullName, attending, companions, config);
+    const found = validate(fullName, answers, companions, config);
     setErrors(found);
     setFormError('');
     if (Object.keys(found).length) {
@@ -125,13 +139,15 @@ export function RsvpModal({ open, onClose }: Props) {
     try {
       await submitRsvp({
         fullName: fullName.replace(/\s+/g, ' ').trim(),
-        attending: attending!,
-        companions: config.allowCompanions && attending ? companions : 0,
+        civil: answers.civil!,
+        photos: answers.photos!,
+        dinner: answers.dinner!,
+        companions: config.allowCompanions && attendsAny ? companions : 0,
         requestId: requestId.current,
         elapsedMs: Date.now() - openedAt.current,
         website,
       });
-      setDone(attending ? 'yes' : 'no');
+      setDone(attendsAny ? 'yes' : 'no');
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError(err.message);
@@ -254,46 +270,75 @@ export function RsvpModal({ open, onClose }: Props) {
                       )}
                     </div>
 
-                    {/* Presença */}
-                    <fieldset className="mt-8">
-                      <legend className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">Presença</legend>
-                      <div role="radiogroup" className="mt-3 grid grid-cols-2 gap-3">
-                        {[
-                          { value: true, label: 'Estarei lá', hint: 'Com certeza' },
-                          { value: false, label: 'Não poderei ir', hint: 'Infelizmente' },
-                        ].map((opt) => {
-                          const checked = attending === opt.value;
-                          return (
-                            <label
-                              key={String(opt.value)}
-                              className={`relative flex min-h-[4.5rem] cursor-pointer flex-col justify-center border px-4 py-3 transition-colors duration-300 has-[:focus-visible]:outline has-[:focus-visible]:outline-1 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold ${
-                                checked ? 'border-ink bg-ink text-paper' : 'border-ink/20 hover:border-ink/50'
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name="attending"
-                                className="sr-only"
-                                checked={checked}
-                                onChange={() => {
-                                  setAttending(opt.value);
-                                  setErrors((x) => ({ ...x, attending: undefined }));
-                                }}
-                              />
-                              <span className={`text-[0.6rem] uppercase tracking-[0.22em] ${checked ? 'text-sand' : 'text-taupe'}`}>
-                                {opt.hint}
-                              </span>
-                              <span className="mt-1 font-serif text-lg leading-tight">{opt.label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      {errors.attending && <p className="mt-2 text-xs text-[#9b3b2f]">{errors.attending}</p>}
-                    </fieldset>
+                    {/* Três momentos, respondidos de forma independente */}
+                    <p className="mt-8 text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
+                      De quais momentos você vai participar?
+                    </p>
+                    <div className="mt-2">
+                      {QUESTIONS.map((q) => (
+                        <fieldset key={q.key} className="border-b border-ink/12 py-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <legend className="float-left">
+                              <span className="block text-[0.58rem] uppercase tracking-[0.22em] text-gold">{q.hint}</span>
+                              <span className="mt-0.5 block font-serif text-[1.15rem] leading-tight">{q.title}</span>
+                            </legend>
+                            <div className="flex shrink-0 gap-2">
+                              {[
+                                { value: true, label: 'Sim' },
+                                { value: false, label: 'Não' },
+                              ].map((opt) => {
+                                const checked = answers[q.key] === opt.value;
+                                return (
+                                  <label
+                                    key={opt.label}
+                                    className={`grid h-11 w-[3.6rem] cursor-pointer place-items-center border text-[0.68rem] uppercase tracking-[0.18em] transition-colors duration-300 has-[:focus-visible]:outline has-[:focus-visible]:outline-1 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold ${
+                                      checked ? 'border-ink bg-ink text-paper' : 'border-ink/20 hover:border-ink/50'
+                                    }`}
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={q.key}
+                                      className="sr-only"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setAnswers((a) => ({ ...a, [q.key]: opt.value }));
+                                        setErrors((x) => ({ ...x, [q.key]: undefined }));
+                                      }}
+                                    />
+                                    {opt.label}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          {errors[q.key] && <p className="mt-2 clear-both text-xs text-[#9b3b2f]">{errors[q.key]}</p>}
+                          {q.key === 'dinner' && (
+                            <AnimatePresence initial={false}>
+                              {answers.dinner === true && (
+                                <m.p
+                                  key="dinner-note"
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.45, ease: EASE_CINE }}
+                                  className="clear-both overflow-hidden"
+                                >
+                                  <span className="mt-3 block border-l-2 border-gold/60 bg-gold/[0.07] px-3 py-2.5 font-serif text-[0.98rem] italic leading-snug text-ink/75">
+                                    {INVITE.dinner.venue && INVITE.dinner.time
+                                      ? `Nos vemos em ${INVITE.dinner.venue}, às ${INVITE.dinner.time}. Cada convidado fica responsável pelo próprio consumo.`
+                                      : 'O restaurante e o horário serão divulgados em breve. Cada convidado fica responsável pelo próprio consumo.'}
+                                  </span>
+                                </m.p>
+                              )}
+                            </AnimatePresence>
+                          )}
+                        </fieldset>
+                      ))}
+                    </div>
 
                     {/* Acompanhantes (somente se os noivos permitirem) */}
                     <AnimatePresence initial={false}>
-                      {config.allowCompanions && attending === true && (
+                      {config.allowCompanions && attendsAny && (
                         <m.div
                           key="companions"
                           initial={{ height: 0, opacity: 0 }}

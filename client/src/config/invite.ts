@@ -1,22 +1,53 @@
-﻿/** Dados do convite — fonte única para textos factuais. */
+/**
+ * Dados do convite — fonte única para textos factuais.
+ *
+ * Informações ainda não definidas ficam como `null`: o site mostra
+ * automaticamente "será informado em breve". Quando forem definidas,
+ * basta preencher aqui e publicar de novo.
+ */
 export const INVITE = {
   groom: { first: 'Ademilson', last: 'Oliveira' },
   bride: { first: 'Regiane', last: 'Anjos' },
-  ceremony: {
-    /** Horário de Brasília (UTC−3, sem horário de verão desde 2019). */
-    iso: '2026-11-28T16:30:00-03:00',
+  date: {
     weekday: 'Sábado',
     day: '28',
     month: 'Novembro',
     year: '2026',
-    dateLong: '28 de novembro de 2026',
-    time: '16h30',
+    long: '28 de novembro de 2026',
+  },
+
+  /** I — O casamento civil (o momento principal). */
+  civil: {
+    /** Horário de Brasília (UTC−3). Usado também pela contagem regressiva. */
+    iso: '2026-11-28T15:00:00-03:00',
+    time: '15h',
     venue: 'Cartório do 2º Ofício de Castanhal',
     /** Quebra editorial do nome do local. */
     venueLines: ['Cartório do 2º Ofício', 'de Castanhal'],
     mapsUrl: 'https://maps.app.goo.gl/QGuHDsKwDNSM1q9Q7',
   },
-} as const;
+
+  /** II — Sessão de fotos. */
+  photos: {
+    venue: 'Jardins Sollaris Condomínio',
+    mapsUrl: 'https://maps.app.goo.gl/APvL5EhSRhX9P4mq6',
+    /** Ex.: '17h'. Enquanto null, mostra `timeFallback`. */
+    time: null as string | null,
+    timeFallback: 'Na sequência do casamento civil',
+  },
+
+  /** III — Encontro noturno no restaurante. */
+  dinner: {
+    /** Ex.: 'Restaurante Exemplo'. */
+    venue: null as string | null,
+    /** Ex.: 'Av. Exemplo, 123 — Castanhal'. */
+    address: null as string | null,
+    /** Ex.: '20h'. */
+    time: null as string | null,
+    /** Link do Google Maps do restaurante. */
+    mapsUrl: null as string | null,
+  },
+};
 
 export interface PhotoAsset {
   src: string;

@@ -143,6 +143,17 @@
   animation: eq 1.1s ease-in-out infinite;
 }
 
+/* Luzes quentes da cena noturna: cintilam devagar, como velas. */
+@keyframes flicker {
+  0%, 100% { opacity: 0.15; transform: scale(0.8); }
+  50% { opacity: 0.75; transform: scale(1.15); }
+}
+.night-light {
+  opacity: 0.35;
+  box-shadow: 0 0 12px 3px rgb(196 167 122 / 0.45);
+  animation: flicker 4.5s ease-in-out infinite;
+}
+
 .photo-fallback {
   background:
     radial-gradient(ellipse at 50% 35%, rgb(168 135 90 / 0.18), transparent 60%),
@@ -159,6 +170,7 @@
     transform: scale(1.02);
   }
   .film-grain,
+  .night-light,
   .scroll-cue-line,
   .eq-playing .eq-bar {
     animation: none;

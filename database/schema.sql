@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 --  Our Forever — Ademilson & Regiane
 --  Tabela de confirmações de presença (RSVP) — MySQL / MariaDB (Hostinger)
 --
@@ -13,11 +13,12 @@ CREATE TABLE IF NOT EXISTS rsvps (
   -- quando o convidado reenvia após uma falha de conexão.
   request_id   CHAR(36)         NOT NULL,
   full_name    VARCHAR(120)     NOT NULL,
-  attending    TINYINT(1)       NOT NULL,              -- 1 = vai, 0 = não vai
+  civil        TINYINT(1)       NOT NULL,              -- I   casamento civil   (1 = sim)
+  photos       TINYINT(1)       NOT NULL,              -- II  sessão de fotos   (1 = sim)
+  dinner       TINYINT(1)       NOT NULL,              -- III encontro noturno  (1 = sim)
   companions   TINYINT UNSIGNED NOT NULL DEFAULT 0,
   created_at   DATETIME(3)      NOT NULL,              -- em UTC
   UNIQUE KEY uq_rsvps_request_id (request_id),
-  KEY idx_rsvps_attending (attending),
   KEY idx_rsvps_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -30,17 +31,20 @@ CREATE TABLE IF NOT EXISTS rsvps (
 -- ---------------------------------------------------------------------
 --  Consultas úteis (horário de Brasília = UTC−3)
 -- ---------------------------------------------------------------------
--- Totais:
---   SELECT
---     SUM(attending = 1)                        AS confirmaram,
---     SUM(attending = 0)                        AS nao_poderao_ir,
---     COALESCE(SUM(IF(attending, 1 + companions, 0)), 0) AS total_de_pessoas
+-- Totais por momento:
+--   SELECT SUM(civil)  AS casamento_civil,
+--          SUM(photos) AS sessao_de_fotos,
+--          SUM(dinner) AS encontro_noturno,
+--          SUM(civil = 0 AND photos = 0 AND dinner = 0) AS nao_poderao_ir
 --   FROM rsvps;
 --
--- Quem confirmou:
---   SELECT full_name, companions, DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
---   FROM rsvps WHERE attending = 1 ORDER BY full_name;
+-- Todas as respostas:
+--   SELECT full_name,
+--          IF(civil,  'Sim', 'Não') AS civil,
+--          IF(photos, 'Sim', 'Não') AS fotos,
+--          IF(dinner, 'Sim', 'Não') AS jantar,
+--          DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
+--   FROM rsvps ORDER BY full_name;
 --
--- Quem não poderá comparecer:
---   SELECT full_name, DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
---   FROM rsvps WHERE attending = 0 ORDER BY full_name;
+-- Quem vai ao encontro noturno (para a reserva do restaurante):
+--   SELECT full_name FROM rsvps WHERE dinner = 1 ORDER BY full_name;

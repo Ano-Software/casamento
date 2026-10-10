@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from 'express';
+﻿import { Router, type Request, type Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { env } from '../config/env.js';
 import { fieldErrors, rsvpSchema } from '../services/validation.js';
@@ -45,14 +45,15 @@ rsvpRouter.post('/rsvp', submitLimiter, async (req: Request, res: Response) => {
   // Honeypot preenchido: responde como sucesso, mas não registra nada.
   if (input.website && input.website.trim() !== '') {
     console.warn('[rsvp] Envio descartado (honeypot).');
-    return res.status(201).json({ ok: true, attending: input.attending });
+    return res.status(201).json({ ok: true });
   }
 
   if (input.elapsedMs < MIN_FILL_TIME_MS) {
     return res.status(400).json({ ok: false, error: 'Não foi possível validar o envio. Tente novamente.' });
   }
 
-  const companions = env.rsvp.allowCompanions && input.attending ? input.companions : 0;
+  const attendsAny = input.civil || input.photos || input.dinner;
+  const companions = env.rsvp.allowCompanions && attendsAny ? input.companions : 0;
   if (companions > env.rsvp.maxCompanions) {
     return res.status(400).json({
       ok: false,
@@ -64,7 +65,9 @@ rsvpRouter.post('/rsvp', submitLimiter, async (req: Request, res: Response) => {
   const record: RsvpRecord = {
     requestId: input.requestId,
     fullName: input.fullName,
-    attending: input.attending,
+    civil: input.civil,
+    photos: input.photos,
+    dinner: input.dinner,
     companions,
     createdAt: new Date(),
   };
@@ -99,8 +102,8 @@ rsvpRouter.post('/rsvp', submitLimiter, async (req: Request, res: Response) => {
   }
 
   console.info(
-    `[rsvp] ${duplicate ? 'Reenvio ignorado' : 'Registrado'} id=${record.requestId} presença=${record.attending} ` +
+    `[rsvp] ${duplicate ? 'Reenvio ignorado' : 'Registrado'} id=${record.requestId} civil=${record.civil} fotos=${record.photos} jantar=${record.dinner} ` +
       `armazenado=${stored} email=${mailed}`,
   );
-  return res.status(201).json({ ok: true, attending: record.attending });
+  return res.status(201).json({ ok: true });
 });

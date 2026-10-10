@@ -8,7 +8,9 @@ export interface RsvpConfig {
 
 export interface RsvpPayload {
   fullName: string;
-  attending: boolean;
+  civil: boolean;
+  photos: boolean;
+  dinner: boolean;
   companions: number;
   requestId: string;
   elapsedMs: number;

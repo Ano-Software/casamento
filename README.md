@@ -2,8 +2,13 @@
 
 Convite de casamento digital, cinematográfico e mobile-first, com confirmação de presença (RSVP) real: as respostas são **gravadas** no MySQL da Hostinger (ou em arquivo, no desenvolvimento) e **enviadas por e-mail** aos noivos pelo backend.
 
-- **Data:** sábado, 28 de novembro de 2026, às 16h30 (horário de Brasília)
-- **Local:** Cartório do 2º Ofício de Castanhal — [Google Maps](https://maps.app.goo.gl/QGuHDsKwDNSM1q9Q7)
+**Sábado, 28 de novembro de 2026** — um dia, três momentos:
+
+| | Momento | Horário | Local |
+|---|---|---|---|
+| I | Casamento civil | 15h | Cartório do 2º Ofício de Castanhal — [Google Maps](https://maps.app.goo.gl/QGuHDsKwDNSM1q9Q7) |
+| II | Sessão de fotos | Na sequência do civil (a definir) | Jardins Sollaris Condomínio — [Google Maps](https://maps.app.goo.gl/APvL5EhSRhX9P4mq6) |
+| III | Encontro noturno | A definir | Restaurante a definir (cada convidado paga o próprio consumo) |
 
 ---
 
@@ -26,16 +31,20 @@ Convite de casamento digital, cinematográfico e mobile-first, com confirmação
 
 ## 1. A narrativa
 
-A página é um pequeno filme vertical, dividido em capítulos (I a V):
+A página é um pequeno filme vertical: um prólogo, o convite e os **três capítulos do dia**.
 
 | Cena | Conteúdo | Foto | Movimento |
 |---|---|---|---|
 | Abertura | "Algumas histórias são escritas para durar para sempre." → ADEMILSON & REGIANE → botão **VIVER ESSE MOMENTO** | — | Cartelas com fade e desfoque; um toque adianta direto para o botão (≈4 s) |
-| I · Nossa história | "Dois caminhos, uma escolha, uma vida inteira." | `casal2.jpeg` (principal, tela cheia) | Zoom lento de câmera e parallax discreto |
-| II · O noivado | "Um sim que nos trouxe até aqui. Outro que nos acompanhará para sempre." | `mao.jpeg` | Revelação circular que nasce do anel, como uma íris de cinema |
-| III · O convite | Nomes completos, data em destaque, horário, local e contagem regressiva | — | A "luz se acende": transição do escuro para o papel |
-| IV · O lugar | "Nosso grande dia" + botão **COMO CHEGAR** | `porta.jpeg`, recortada só no reflexo do espelho | Moldura editorial com parallax leve |
-| V · Sua presença | "Queremos você com a gente." + **CONFIRMAR PRESENÇA** | `casal1.jpeg` (fundo) | Formulário em modal (bottom sheet no celular) |
+| Prólogo · Nossa história | "Dois caminhos, uma escolha, uma vida inteira." | `casal2.jpeg` (principal, tela cheia) | Zoom lento de câmera e parallax discreto |
+| O noivado | "Um sim que nos trouxe até aqui. Outro que nos acompanhará para sempre." | `mao.jpeg` | Revelação circular que nasce do anel, como uma íris de cinema |
+| O convite | Nomes, data em destaque, sumário "Um dia, três momentos" (com links para cada capítulo) e contagem regressiva até as 15h | — | A "luz se acende": transição do escuro para o papel |
+| **I · O sim** | Casamento civil: "O primeiro sim. O começo de uma vida inteira.", **15h** em destaque, cartório e **COMO CHEGAR** | — | Duas alianças desenhadas em traço fino, sobre tom areia |
+| **II · Memórias para sempre** | Sessão de fotos: "Depois do nosso sim, queremos eternizar esse momento.", Jardins Sollaris e **VER LOCALIZAÇÃO** | `casal2`, `mao` e `porta` como fotos impressas | Álbum com parallax em três velocidades, luz de entardecer |
+| **III · Uma noite para celebrar** | Encontro no restaurante, informações pendentes e o aviso sobre o consumo individual | — | Noite com brilho âmbar e luzes que cintilam como velas |
+| Sua presença | "Queremos você com a gente." + **CONFIRMAR PRESENÇA** | `casal1.jpeg` (fundo) | Formulário em modal (bottom sheet no celular) |
+
+**RSVP:** o convidado informa o nome e responde **sim ou não para cada momento**, de forma independente. Se escolher o encontro noturno, aparece o aviso de que o restaurante e o horário serão divulgados em breve. O e-mail aos noivos traz as três respostas.
 
 Decisões de direção de arte:
 
@@ -277,19 +286,23 @@ As tags Open Graph já apontam para a foto principal. O WhatsApp guarda a pré-v
 **MySQL (Hostinger):** no hPanel, abra **Bancos de dados → phpMyAdmin**, selecione o banco e a tabela `rsvps`, ou rode na aba **SQL**:
 
 ```sql
--- Totais
-SELECT SUM(attending = 1) AS confirmaram,
-       SUM(attending = 0) AS nao_poderao_ir,
-       COALESCE(SUM(IF(attending, 1 + companions, 0)), 0) AS total_de_pessoas
+-- Totais por momento
+SELECT SUM(civil)  AS casamento_civil,
+       SUM(photos) AS sessao_de_fotos,
+       SUM(dinner) AS encontro_noturno,
+       SUM(civil = 0 AND photos = 0 AND dinner = 0) AS nao_poderao_ir
 FROM rsvps;
 
--- Quem confirmou (horário de Brasília)
-SELECT full_name, companions, DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
-FROM rsvps WHERE attending = 1 ORDER BY full_name;
+-- Todas as respostas (horário de Brasília)
+SELECT full_name,
+       IF(civil,  'Sim', 'Não') AS civil,
+       IF(photos, 'Sim', 'Não') AS fotos,
+       IF(dinner, 'Sim', 'Não') AS jantar,
+       DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
+FROM rsvps ORDER BY full_name;
 
--- Quem não poderá comparecer
-SELECT full_name, DATE_SUB(created_at, INTERVAL 3 HOUR) AS enviado_em
-FROM rsvps WHERE attending = 0 ORDER BY full_name;
+-- Lista para a reserva do restaurante
+SELECT full_name FROM rsvps WHERE dinner = 1 ORDER BY full_name;
 ```
 
 A aba **Exportar** do phpMyAdmin gera CSV ou planilha.
@@ -305,12 +318,22 @@ A aba **Exportar** do phpMyAdmin gera CSV ou planilha.
 - **Sem duplicidade:** cada preenchimento tem um `requestId`; reenvios não duplicam o registro nem o e-mail.
 - **Cabeçalhos:** Helmet, com CSP restritiva quando o backend serve o site, e CORS limitado aos domínios configurados.
 - **Erros:** respostas HTTP adequadas (400, 413, 415, 429, 503) com mensagens amigáveis; detalhes internos ficam só no log.
-- **Privacidade:** os logs não registram nomes nem IPs, e o banco guarda apenas nome, resposta, acompanhantes e data.
+- **Privacidade:** os logs não registram nomes nem IPs, e o banco guarda apenas nome, as três respostas, acompanhantes e data.
 - **Credenciais:** apenas no `.env` do servidor (ignorado pelo git). O frontend não tem nenhum segredo.
 
 ## 11. Personalização
 
-- **Textos factuais** (nomes, data, local, link do mapa, URLs das fotos): [`client/src/config/invite.ts`](client/src/config/invite.ts)
+- **Textos factuais** (nomes, data, horários, locais, links dos mapas, URLs das fotos): [`client/src/config/invite.ts`](client/src/config/invite.ts)
+- **Informações pendentes:** no mesmo arquivo, os campos que estão `null` aparecem no site como "será informado em breve". Quando forem definidos, basta preenchê-los, fazer o commit e publicar:
+  ```ts
+  photos: { ..., time: '17h' },                       // horário da sessão de fotos
+  dinner: {
+    venue: 'Nome do Restaurante',
+    address: 'Endereço — Castanhal',
+    time: '20h',
+    mapsUrl: 'https://maps.app.goo.gl/...',            // mostra o botão VER LOCALIZAÇÃO
+  },
+  ```
 - **Frases das cenas:** nos arquivos de [`client/src/sections/`](client/src/sections/)
 - **Paleta e fontes:** bloco `@theme` em [`client/src/styles/index.css`](client/src/styles/index.css)
 - **Imagem de compartilhamento e título:** [`client/index.html`](client/index.html)

@@ -1,4 +1,4 @@
-import { mkdir, readFile, appendFile } from 'node:fs/promises';
+﻿import { mkdir, readFile, appendFile } from 'node:fs/promises';
 import path from 'node:path';
 import mysql, { type Pool, type ResultSetHeader } from 'mysql2/promise';
 import { env } from '../config/env.js';
@@ -6,7 +6,10 @@ import { env } from '../config/env.js';
 export interface RsvpRecord {
   requestId: string;
   fullName: string;
-  attending: boolean;
+  /** Participação em cada um dos três momentos. */
+  civil: boolean;
+  photos: boolean;
+  dinner: boolean;
   companions: number;
   createdAt: Date;
 }
@@ -58,11 +61,12 @@ class MysqlStore implements RsvpStore {
             id           BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
             request_id   CHAR(36)         NOT NULL,
             full_name    VARCHAR(120)     NOT NULL,
-            attending    TINYINT(1)       NOT NULL,
+            civil        TINYINT(1)       NOT NULL,
+            photos       TINYINT(1)       NOT NULL,
+            dinner       TINYINT(1)       NOT NULL,
             companions   TINYINT UNSIGNED NOT NULL DEFAULT 0,
             created_at   DATETIME(3)      NOT NULL,
             UNIQUE KEY uq_rsvps_request_id (request_id),
-            KEY idx_rsvps_attending (attending),
             KEY idx_rsvps_created_at (created_at)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
         )
@@ -80,9 +84,17 @@ class MysqlStore implements RsvpStore {
     // INSERT IGNORE + chave única em request_id: reenvios não duplicam.
     const [result] = await this.getPool().execute<ResultSetHeader>(
       `INSERT IGNORE INTO \`${this.cfg.table}\`
-         (request_id, full_name, attending, companions, created_at)
-       VALUES (?, ?, ?, ?, ?)`,
-      [record.requestId, record.fullName, record.attending ? 1 : 0, record.companions, record.createdAt],
+         (request_id, full_name, civil, photos, dinner, companions, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        record.requestId,
+        record.fullName,
+        record.civil ? 1 : 0,
+        record.photos ? 1 : 0,
+        record.dinner ? 1 : 0,
+        record.companions,
+        record.createdAt,
+      ],
     );
     return { duplicate: result.affectedRows === 0 };
   }

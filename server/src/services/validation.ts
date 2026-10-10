@@ -17,7 +17,10 @@ export const rsvpSchema = z
           .regex(NAME_PATTERN, 'Use apenas letras, espaços, hífen ou apóstrofo.')
           .refine((v) => (v.match(/\p{L}/gu) ?? []).length >= 3, 'Informe seu nome completo.'),
       ),
-    attending: z.boolean('Informe se poderá comparecer.'),
+    // Três momentos independentes: o convidado responde sim ou não para cada um.
+    civil: z.boolean('Responda sobre o casamento civil.'),
+    photos: z.boolean('Responda sobre a sessão de fotos.'),
+    dinner: z.boolean('Responda sobre o encontro noturno.'),
     companions: z.number().int().min(0).max(20).default(0),
     requestId: z.string().regex(UUID, 'Requisição inválida.'),
     elapsedMs: z.number().min(0).max(1e9),
@@ -33,7 +36,7 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};
   for (const issue of error.issues) {
     const key = String(issue.path[0] ?? 'form');
-    if (!out[key]) out[key] = key === 'fullName' || key === 'attending' ? issue.message : 'Valor inválido.';
+    if (!out[key]) out[key] = ['fullName', 'civil', 'photos', 'dinner'].includes(key) ? issue.message : 'Valor inválido.';
   }
   return out;
 }

@@ -1,9 +1,10 @@
-﻿import { ChapterLabel } from '../components/ChapterLabel';
+import { ChapterLabel } from '../components/ChapterLabel';
 import { Countdown } from '../components/Countdown';
 import { Reveal } from '../components/Reveal';
 import { INVITE } from '../config/invite';
+import { MOMENTS } from './moments';
 
-const { ceremony: c } = INVITE;
+const { date: d } = INVITE;
 
 function Name({ first, last }: { first: string; last: string }) {
   return (
@@ -17,8 +18,8 @@ function Name({ first, last }: { first: string; last: string }) {
 }
 
 /**
- * Cena 4 — O convite. A luz se acende: transição do escuro para o papel,
- * com hierarquia tipográfica clara e a data como protagonista.
+ * O convite. A luz se acende: transição do escuro para o papel, com a data
+ * como protagonista e o "sumário" dos três capítulos do dia.
  */
 export function Invitation() {
   return (
@@ -35,7 +36,7 @@ export function Invitation() {
 
       <div className="bg-paper px-6 pb-28 text-center text-ink">
         <Reveal>
-          <ChapterLabel index="III" title="O convite" className="text-taupe" />
+          <ChapterLabel title="O convite" className="text-taupe" />
         </Reveal>
 
         <Reveal delay={0.15} className="mx-auto mt-8 max-w-[22ch]">
@@ -56,32 +57,44 @@ export function Invitation() {
 
         <Reveal className="mt-20">
           <p className="sr-only">
-            {c.weekday}, {c.dateLong}, às {c.time}.
+            {d.weekday}, {d.long}.
           </p>
           <div aria-hidden="true" className="mx-auto flex max-w-sm items-center justify-center">
             <span className="flex-1 border-y border-ink/20 py-3 text-[0.7rem] uppercase tracking-[0.32em]">
-              {c.weekday}
+              {d.weekday}
             </span>
             <span className="px-5 font-serif text-[clamp(5.5rem,26vw,8.5rem)] font-light leading-[0.8] text-ink">
-              {c.day}
+              {d.day}
             </span>
             <span className="flex-1 border-y border-ink/20 py-3 text-[0.7rem] uppercase tracking-[0.32em]">
-              {c.year}
+              {d.year}
             </span>
           </div>
           <p aria-hidden="true" className="mt-5 font-serif text-[clamp(1.6rem,6.5vw,2.2rem)] font-light uppercase tracking-[0.3em]">
-            {c.month}
-          </p>
-          <p aria-hidden="true" className="mt-4 text-sm uppercase tracking-[0.4em] text-gold">
-            {c.time.toUpperCase()}
+            {d.month}
           </p>
         </Reveal>
 
-        <Reveal className="mx-auto mt-12 max-w-xs">
-          <span aria-hidden="true" className="mx-auto mb-6 block h-10 w-px bg-ink/25" />
-          <p className="text-[0.78rem] uppercase leading-relaxed tracking-[0.26em] text-ink/85">
-            {c.venueLines.map((line) => <span key={line} className="block">{line}</span>)}
-          </p>
+        {/* Sumário do "filme": um dia, três momentos */}
+        <Reveal className="mx-auto mt-16 max-w-xs">
+          <span aria-hidden="true" className="mx-auto mb-8 block h-10 w-px bg-ink/25" />
+          <p className="font-serif text-xl italic text-ink/75">Um dia, três momentos.</p>
+          <nav aria-label="Os três momentos do dia" className="mt-7">
+            <ol className="flex flex-col">
+              {MOMENTS.map((mo) => (
+                <li key={mo.id}>
+                  <a
+                    href={`#${mo.id}`}
+                    className="group flex min-h-12 items-baseline gap-4 border-t border-ink/12 py-3.5 text-left transition-colors last:border-b hover:text-gold"
+                  >
+                    <span className="w-7 font-serif text-sm tracking-[0.12em] text-gold">{mo.index}</span>
+                    <span className="flex-1 font-serif text-lg leading-tight">{mo.title}</span>
+                    <span className="text-[0.62rem] uppercase tracking-[0.2em] text-taupe">{mo.when}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
         </Reveal>
 
         <Reveal className="mt-20">

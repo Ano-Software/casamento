@@ -1,4 +1,4 @@
-import { m, useReducedMotion } from 'motion/react';
+﻿import { m, useReducedMotion } from 'motion/react';
 import { Photo } from '../components/Photo';
 import { ChapterLabel } from '../components/ChapterLabel';
 import { Reveal } from '../components/Reveal';
@@ -53,7 +53,7 @@ export function Engagement() {
         style={{ paddingBottom: 'max(4rem, calc(env(safe-area-inset-bottom) + 3rem))' }}
       >
         <Reveal amount={0.6}>
-          <ChapterLabel index="II" title="O noivado" className="text-sand/75" />
+          <ChapterLabel title="O noivado" className="text-sand/75" />
         </Reveal>
         <Reveal delay={0.3} amount={0.6} className="mt-6 max-w-[20ch]">
           <p className="font-serif text-[clamp(1.75rem,7.4vw,2.8rem)] font-light leading-[1.15] text-paper">

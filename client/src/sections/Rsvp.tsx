@@ -31,8 +31,8 @@ export function Rsvp({ onOpen }: Props) {
             style={{ objectPosition: '50% 30%' }}
           />
         </m.div>
-        {/* Transição do areia para o escuro + véu para leitura */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-sand to-transparent opacity-90" />
+        {/* Continuação da noite + véu para leitura */}
+        <div className="absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[#0c0b0a] via-[#0c0b0a]/70 to-transparent" />
         <div className="absolute inset-0 bg-ink/35" />
         <div className="absolute inset-x-0 bottom-0 h-[75%] bg-gradient-to-t from-ink via-ink/85 to-transparent" />
       </div>
@@ -42,7 +42,7 @@ export function Rsvp({ onOpen }: Props) {
         style={{ paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom) + 4rem))' }}
       >
         <Reveal>
-          <ChapterLabel index="V" title="Sua presença" className="text-sand/80" />
+          <ChapterLabel title="Sua presença" className="text-sand/80" />
         </Reveal>
         <Reveal delay={0.15} className="mt-6">
           <h2 className="font-serif text-[clamp(2.3rem,10vw,3.5rem)] font-light leading-[1.05] text-paper">

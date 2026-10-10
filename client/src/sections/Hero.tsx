@@ -1,4 +1,4 @@
-import { m, useReducedMotion, useScroll, useTransform } from 'motion/react';
+﻿import { m, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { Photo } from '../components/Photo';
 import { ChapterLabel } from '../components/ChapterLabel';
@@ -53,7 +53,7 @@ export function Hero({ started }: { started: boolean }) {
             animate={started ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 1.2, delay: 0.5 }}
           >
-            <ChapterLabel index="I" title="Nossa história" className="text-sand/80" />
+            <ChapterLabel index="Prólogo" title="Nossa história" className="text-sand/80" />
           </m.div>
 
           <h2 className="mt-5 font-serif text-[clamp(2.1rem,9vw,3.6rem)] font-light leading-[1.08] text-paper">
