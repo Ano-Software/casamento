@@ -255,6 +255,20 @@ Observações:
 
 Numa VPS (Ubuntu), o roteiro típico é: instalar o Node 20+, clonar o projeto, criar o `.env`, rodar `npm install && npm run build`, manter o processo ativo com `pm2 start "npm start" --name convite` e colocar o Nginx na frente (`proxy_pass http://127.0.0.1:3001`) com HTTPS via `certbot --nginx`.
 
+### Hostinger (Node.js Web App via GitHub)
+
+Se a Hostinger detectar o framework errado (por exemplo, **Next.js**, que falha com `No output directory found after build`), ajuste em **Configurações de compilação e saída**:
+
+| Campo | Valor |
+|---|---|
+| Framework | **Express** |
+| Versão do Node | 22 (ou 20+) |
+| Diretório raiz | `./` |
+| Comando de build | `npm run build` |
+| Arquivo de entrada | `server/dist/server.js` |
+| Diretório de saída | vazio |
+
+Variáveis de ambiente do site: `SERVE_CLIENT=true`, `TRUST_PROXY=1`, além de `DB_*`, SMTP e `RSVP_*`.
 ### Opção B — Frontend estático + backend separado
 
 **Frontend** (Vercel, Netlify, Cloudflare Pages ou a hospedagem comum da Hostinger):

@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Our Forever — convite de casamento digital de Ademilson & Regiane",
+  "main": "server/dist/server.js",
   "workspaces": [
     "client",
     "server"
@@ -19,6 +20,9 @@
   },
   "engines": {
     "node": ">=20.11"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.5"
