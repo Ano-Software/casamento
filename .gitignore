@@ -1,0 +1,21 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Variáveis de ambiente (nunca versionar credenciais)
+.env
+.env.*
+!.env.example
+
+# Respostas de RSVP gravadas localmente (contêm nomes de convidados)
+server/data/
+
+# Arquivo de áudio local (verifique a licença antes de versionar/publicar)
+client/public/audio/*
+!client/public/audio/LEIA-ME.txt
+
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json

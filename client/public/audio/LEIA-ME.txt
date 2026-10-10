@@ -1,0 +1,8 @@
+Coloque aqui o arquivo de áudio LICENCIADO/AUTORIZADO da trilha sonora
+(por exemplo: trilha.mp3) e configure no .env da raiz:
+
+  VITE_AUDIO_SRC=/audio/trilha.mp3
+  VITE_AUDIO_TITLE=Photograph — Ed Sheeran
+
+Não publique gravações protegidas por direitos autorais sem autorização.
+Veja a seção "Música" do README.md.

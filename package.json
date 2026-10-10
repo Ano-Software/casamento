@@ -1,0 +1,26 @@
+{
+  "name": "convite-ademilson-regiane",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Our Forever — convite de casamento digital de Ademilson & Regiane",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "build": "npm run build -w client && npm run build -w server",
+    "build:client": "npm run build -w client",
+    "build:server": "npm run build -w server",
+    "start": "npm run start -w server",
+    "typecheck": "npm run typecheck -w client && npm run typecheck -w server"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}

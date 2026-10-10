@@ -1,0 +1,39 @@
+import { z } from 'zod';
+import { NAME_PATTERN, sanitizeName } from './sanitize.js';
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const rsvpSchema = z
+  .object({
+    fullName: z
+      .string('Informe seu nome completo.')
+      .max(300, 'Nome muito longo.')
+      .transform(sanitizeName)
+      .pipe(
+        z
+          .string()
+          .min(3, 'Informe seu nome completo.')
+          .max(120, 'Use no máximo 120 caracteres.')
+          .regex(NAME_PATTERN, 'Use apenas letras, espaços, hífen ou apóstrofo.')
+          .refine((v) => (v.match(/\p{L}/gu) ?? []).length >= 3, 'Informe seu nome completo.'),
+      ),
+    attending: z.boolean('Informe se poderá comparecer.'),
+    companions: z.number().int().min(0).max(20).default(0),
+    requestId: z.string().regex(UUID, 'Requisição inválida.'),
+    elapsedMs: z.number().min(0).max(1e9),
+    /** Honeypot: campo invisível para pessoas; robôs costumam preenchê-lo. */
+    website: z.string().max(500).optional(),
+  })
+  .strict();
+
+export type RsvpInput = z.infer<typeof rsvpSchema>;
+
+/** Converte erros do zod em mensagens por campo, seguras para o visitante. */
+export function fieldErrors(error: z.ZodError): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = String(issue.path[0] ?? 'form');
+    if (!out[key]) out[key] = key === 'fullName' || key === 'attending' ? issue.message : 'Valor inválido.';
+  }
+  return out;
+}

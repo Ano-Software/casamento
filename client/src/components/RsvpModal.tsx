@@ -1,0 +1,392 @@
+﻿import { AnimatePresence, m } from 'motion/react';
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { ApiError, fetchRsvpConfig, submitRsvp, type RsvpConfig } from '../services/api';
+import { uuid } from '../lib/uuid';
+import { EASE_CINE } from '../lib/motion';
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
+
+const NAME_PATTERN = /^[\p{L}\p{M}][\p{L}\p{M}'’. -]*$/u;
+
+const SUCCESS = {
+  yes: {
+    title: 'Que alegria!',
+    text: 'Sua presença foi confirmada. Estamos felizes em compartilhar esse momento com você.',
+  },
+  no: {
+    title: 'Obrigado pelo carinho.',
+    text: 'Agradecemos por nos avisar. Você continuará fazendo parte da nossa história.',
+  },
+};
+
+type Errors = Partial<Record<'fullName' | 'attending' | 'companions', string>>;
+
+function validate(name: string, attending: boolean | null, companions: number, cfg: RsvpConfig): Errors {
+  const errors: Errors = {};
+  const clean = name.replace(/\s+/g, ' ').trim();
+  if (clean.length < 3 || (clean.match(/\p{L}/gu) ?? []).length < 3) errors.fullName = 'Informe seu nome completo.';
+  else if (clean.length > 120) errors.fullName = 'Use no máximo 120 caracteres.';
+  else if (!NAME_PATTERN.test(clean)) errors.fullName = 'Use apenas letras, espaços, hífen ou apóstrofo.';
+  if (attending === null) errors.attending = 'Escolha uma das opções.';
+  if (cfg.allowCompanions && attending && (companions < 0 || companions > cfg.maxCompanions)) {
+    errors.companions = `O limite é de ${cfg.maxCompanions} acompanhante(s).`;
+  }
+  return errors;
+}
+
+export function RsvpModal({ open, onClose }: Props) {
+  const titleId = useId();
+  const nameId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+
+  const [config, setConfig] = useState<RsvpConfig>({ allowCompanions: false, maxCompanions: 0 });
+  const [fullName, setFullName] = useState('');
+  const [attending, setAttending] = useState<boolean | null>(null);
+  const [companions, setCompanions] = useState(0);
+  const [website, setWebsite] = useState('');
+  const [errors, setErrors] = useState<Errors>({});
+  const [formError, setFormError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState<null | 'yes' | 'no'>(null);
+
+  // Um identificador por preenchimento: reenvios após falha não duplicam o registro.
+  const requestId = useRef(uuid());
+  const openedAt = useRef(0);
+
+  useEffect(() => {
+    if (!open) return;
+    returnFocus.current = document.activeElement as HTMLElement | null;
+    openedAt.current = Date.now();
+    if (done) {
+      // Nova resposta (ex.: outra pessoa da família) após um envio concluído.
+      setDone(null);
+      setFullName('');
+      setAttending(null);
+      setCompanions(0);
+      requestId.current = uuid();
+    }
+    setErrors({});
+    setFormError('');
+    const t = window.setTimeout(() => nameRef.current?.focus({ preventScroll: true }), 350);
+    let alive = true;
+    fetchRsvpConfig()
+      .then((cfg) => alive && setConfig(cfg))
+      .catch(() => {
+        /* sem config: campo de acompanhantes fica oculto; o servidor valida */
+      });
+    return () => {
+      alive = false;
+      window.clearTimeout(t);
+      returnFocus.current?.focus?.({ preventScroll: true });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const close = () => {
+    if (!sending) onClose();
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') return close();
+    if (e.key !== 'Tab' || !panelRef.current) return;
+    // Mantém o foco dentro da modal.
+    const focusables = panelRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]):not([tabindex="-1"]), a[href]',
+    );
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (sending) return;
+    const found = validate(fullName, attending, companions, config);
+    setErrors(found);
+    setFormError('');
+    if (Object.keys(found).length) {
+      if (found.fullName) nameRef.current?.focus();
+      return;
+    }
+
+    setSending(true);
+    try {
+      await submitRsvp({
+        fullName: fullName.replace(/\s+/g, ' ').trim(),
+        attending: attending!,
+        companions: config.allowCompanions && attending ? companions : 0,
+        requestId: requestId.current,
+        elapsedMs: Date.now() - openedAt.current,
+        website,
+      });
+      setDone(attending ? 'yes' : 'no');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setFormError(err.message);
+        setErrors(err.fields as Errors);
+      } else {
+        setFormError('Não conseguimos registrar sua resposta agora. Tente novamente em alguns minutos.');
+      }
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <m.div
+          key="rsvp"
+          className="h-screen-d fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.4 } }}
+          onKeyDown={onKeyDown}
+        >
+          <div aria-hidden="true" className="absolute inset-0 bg-ink/75 backdrop-blur-sm" onClick={close} />
+
+          <m.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className="max-h-screen-d relative w-full overflow-y-auto overscroll-contain bg-paper text-ink shadow-2xl sm:max-w-md"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            initial={{ y: 60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 40, opacity: 0 }}
+            transition={{ duration: 0.7, ease: EASE_CINE }}
+          >
+            <button
+              type="button"
+              onClick={close}
+              disabled={sending}
+              aria-label="Fechar"
+              className="absolute top-3 right-3 grid size-11 place-items-center text-ink/50 transition-colors hover:text-ink disabled:opacity-30"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+
+            <div className="px-7 pt-12 pb-9 sm:px-10">
+              <AnimatePresence mode="wait" initial={false}>
+                {done ? (
+                  <m.div
+                    key="done"
+                    className="py-10 text-center"
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.9, ease: EASE_CINE }}
+                    role="status"
+                  >
+                    <span aria-hidden="true" className="mx-auto block h-12 w-px bg-gold/60" />
+                    <h2 id={titleId} className="mt-8 font-serif text-4xl font-light">
+                      {SUCCESS[done].title}
+                    </h2>
+                    <p className="mx-auto mt-5 max-w-[30ch] font-serif text-lg italic leading-relaxed text-ink/75">
+                      {SUCCESS[done].text}
+                    </p>
+                    <p className="mt-8 font-serif text-sm text-taupe">Ademilson &amp; Regiane</p>
+                    <button
+                      type="button"
+                      onClick={close}
+                      className="mt-10 min-h-12 border border-ink/30 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.32em] transition-colors hover:border-ink"
+                    >
+                      Fechar
+                    </button>
+                  </m.div>
+                ) : (
+                  <m.form
+                    key="form"
+                    noValidate
+                    onSubmit={onSubmit}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  >
+                    <p className="eyebrow text-center text-taupe">Confirmação de presença</p>
+                    <h2 id={titleId} className="mt-3 text-center font-serif text-[2rem] font-light leading-tight text-balance">
+                      Você vem celebrar com a gente?
+                    </h2>
+
+                    {/* Nome */}
+                    <div className="mt-9">
+                      <label htmlFor={nameId} className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
+                        Nome completo
+                      </label>
+                      <input
+                        ref={nameRef}
+                        id={nameId}
+                        name="fullName"
+                        type="text"
+                        autoComplete="name"
+                        autoCapitalize="words"
+                        enterKeyHint="next"
+                        maxLength={120}
+                        required
+                        value={fullName}
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          if (errors.fullName) setErrors((x) => ({ ...x, fullName: undefined }));
+                        }}
+                        aria-invalid={Boolean(errors.fullName)}
+                        aria-describedby={errors.fullName ? `${nameId}-err` : undefined}
+                        className="mt-2 block w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink placeholder:text-ink/30 focus:border-ink focus:outline-none aria-[invalid=true]:border-[#9b3b2f]"
+                        placeholder="Como devemos chamar você"
+                      />
+                      {errors.fullName && (
+                        <p id={`${nameId}-err`} className="mt-2 text-xs text-[#9b3b2f]">
+                          {errors.fullName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Presença */}
+                    <fieldset className="mt-8">
+                      <legend className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">Presença</legend>
+                      <div role="radiogroup" className="mt-3 grid grid-cols-2 gap-3">
+                        {[
+                          { value: true, label: 'Estarei lá', hint: 'Com certeza' },
+                          { value: false, label: 'Não poderei ir', hint: 'Infelizmente' },
+                        ].map((opt) => {
+                          const checked = attending === opt.value;
+                          return (
+                            <label
+                              key={String(opt.value)}
+                              className={`relative flex min-h-[4.5rem] cursor-pointer flex-col justify-center border px-4 py-3 transition-colors duration-300 has-[:focus-visible]:outline has-[:focus-visible]:outline-1 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-gold ${
+                                checked ? 'border-ink bg-ink text-paper' : 'border-ink/20 hover:border-ink/50'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="attending"
+                                className="sr-only"
+                                checked={checked}
+                                onChange={() => {
+                                  setAttending(opt.value);
+                                  setErrors((x) => ({ ...x, attending: undefined }));
+                                }}
+                              />
+                              <span className={`text-[0.6rem] uppercase tracking-[0.22em] ${checked ? 'text-sand' : 'text-taupe'}`}>
+                                {opt.hint}
+                              </span>
+                              <span className="mt-1 font-serif text-lg leading-tight">{opt.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {errors.attending && <p className="mt-2 text-xs text-[#9b3b2f]">{errors.attending}</p>}
+                    </fieldset>
+
+                    {/* Acompanhantes (somente se os noivos permitirem) */}
+                    <AnimatePresence initial={false}>
+                      {config.allowCompanions && attending === true && (
+                        <m.div
+                          key="companions"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.5, ease: EASE_CINE }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-8 flex items-center justify-between gap-4">
+                            <div>
+                              <p className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70" id="companions-label">
+                                Acompanhantes
+                              </p>
+                              <p className="mt-1 text-xs text-taupe">Até {config.maxCompanions}</p>
+                            </div>
+                            <div className="flex items-center" role="group" aria-labelledby="companions-label">
+                              <StepButton
+                                label="Diminuir acompanhantes"
+                                disabled={companions <= 0}
+                                onClick={() => setCompanions((n) => Math.max(0, n - 1))}
+                              >
+                                −
+                              </StepButton>
+                              <output aria-live="polite" className="w-12 text-center font-serif text-2xl tabular-nums">
+                                {companions}
+                              </output>
+                              <StepButton
+                                label="Aumentar acompanhantes"
+                                disabled={companions >= config.maxCompanions}
+                                onClick={() => setCompanions((n) => Math.min(config.maxCompanions, n + 1))}
+                              >
+                                +
+                              </StepButton>
+                            </div>
+                          </div>
+                          {errors.companions && <p className="mt-2 text-xs text-[#9b3b2f]">{errors.companions}</p>}
+                        </m.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Honeypot — invisível para pessoas */}
+                    <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                      <label>
+                        Site
+                        <input
+                          type="text"
+                          name="website"
+                          tabIndex={-1}
+                          autoComplete="off"
+                          value={website}
+                          onChange={(e) => setWebsite(e.target.value)}
+                        />
+                      </label>
+                    </div>
+
+                    {formError && (
+                      <p role="alert" className="mt-8 border-l-2 border-[#9b3b2f] bg-[#9b3b2f]/5 px-4 py-3 text-sm leading-relaxed text-[#7d2f25]">
+                        {formError}
+                      </p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      aria-busy={sending}
+                      className="mt-9 flex min-h-13 w-full items-center justify-center gap-3 bg-ink px-6 py-4 text-[0.68rem] uppercase tracking-[0.32em] text-paper transition-[background-color,transform,opacity] duration-300 hover:bg-ink-soft active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
+                    >
+                      {sending && (
+                        <span aria-hidden="true" className="size-3.5 animate-spin rounded-full border border-paper/30 border-t-paper" />
+                      )}
+                      {sending ? 'Enviando…' : 'Enviar confirmação'}
+                    </button>
+                  </m.form>
+                )}
+              </AnimatePresence>
+            </div>
+          </m.div>
+        </m.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function StepButton(props: { label: string; disabled: boolean; onClick: () => void; children: string }) {
+  return (
+    <button
+      type="button"
+      aria-label={props.label}
+      disabled={props.disabled}
+      onClick={props.onClick}
+      className="grid size-11 place-items-center border border-ink/25 font-serif text-xl transition-colors hover:border-ink disabled:opacity-30"
+    >
+      {props.children}
+    </button>
+  );
+}
