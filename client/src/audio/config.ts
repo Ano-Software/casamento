@@ -11,8 +11,19 @@
 /** "Photograph" — Ed Sheeran. Pode ser trocada por VITE_SPOTIFY_TRACK_URL. */
 const DEFAULT_SPOTIFY_TRACK = 'https://open.spotify.com/intl-pt/track/1HNkqx9Ahdgi1Ixy2xkKkL';
 
+/** Arquivo da trilha no Storage do Supabase (mesmo bucket das fotos). */
+const DEFAULT_AUDIO_SRC =
+  'https://nnkxrczzerkglnasucgi.supabase.co/storage/v1/object/public/Casamento/Ed%20Sheeran%20-%20Photograph%20(Official%20Lyric%20Video).mp3';
+
+/** VITE_AUDIO_SRC sobrescreve o arquivo padrão; "off" desliga e volta para o Spotify. */
+function audioSrc(): string {
+  const raw = import.meta.env.VITE_AUDIO_SRC?.trim();
+  if (raw?.toLowerCase() === 'off') return '';
+  return raw || DEFAULT_AUDIO_SRC;
+}
+
 export const AUDIO = {
-  src: import.meta.env.VITE_AUDIO_SRC?.trim() ?? '',
+  src: audioSrc(),
   title: import.meta.env.VITE_AUDIO_TITLE?.trim() || 'Photograph — Ed Sheeran',
   volume: 0.55,
   fadeInMs: 2400,
