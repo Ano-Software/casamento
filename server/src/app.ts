@@ -18,7 +18,9 @@ export function createApp() {
         ? {
             directives: {
               defaultSrc: ["'self'"],
-              scriptSrc: ["'self'"],
+              // Spotify iFrame API (player oficial da trilha). O script do Spotify usa
+              // eval internamente; scripts continuam restritos a estas origens fixas.
+              scriptSrc: ["'self'", "'unsafe-eval'", 'https://open.spotify.com', 'https://embed-cdn.spotifycdn.com'],
               styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
               fontSrc: ["'self'", 'https://fonts.gstatic.com'],
               imgSrc: ["'self'", 'data:', 'https://*.supabase.co'],

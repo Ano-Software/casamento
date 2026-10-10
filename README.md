@@ -181,39 +181,39 @@ Ao iniciar, o servidor testa a conexão SMTP e registra o resultado no log.
 
 ## 7. Música
 
-O convite foi pensado para **"Photograph", de Ed Sheeran**, mas essa gravação é protegida por direitos autorais. Por isso, o projeto **não inclui nenhum arquivo de áudio** e não usa extração do YouTube, scraping nem serviços não autorizados.
+A trilha é **"Photograph", de Ed Sheeran**, tocada pelo **player oficial do Spotify** (Spotify iFrame API). O projeto não inclui nenhum arquivo de áudio da música e não usa extração do YouTube, scraping nem serviços não autorizados.
 
-**Por que não uma incorporação oficial como fundo?** As incorporações oficiais (player do Spotify ou do YouTube) exigem um player visível, não podem ser controladas como trilha de fundo pelo botão do convite e, no caso do Spotify, tocam só uma prévia de 30 s para quem não está logado. Não servem como trilha contínua. Elas podem aparecer, sim, como player visível (veja a opção C).
+### Como funciona (padrão: Spotify)
 
-Opções para os noivos:
+- O player oficial é preparado enquanto a abertura roda. Ao tocar em **VIVER ESSE MOMENTO**, o convite tenta iniciar a faixa.
+- Um mini player discreto aparece no rodapé da tela. Quando a música começa, ele se recolhe sozinho (ou pela seta) e fica só o botão redondo no topo, para pausar e retomar.
+- Se o navegador não deixar o site iniciar a música sozinho (comum no iPhone), o player continua visível para o convidado tocar no ▶.
+- A música pausa ao trocar de aba ou de app (por exemplo, ao voltar para o WhatsApp) e retoma ao voltar.
 
-**A) Arquivo de áudio autorizado** (recomendado). Use um áudio cuja publicação você tenha permissão para fazer: uma versão licenciada, um arranjo instrumental com licença de uso, uma trilha *royalty-free* ou uma gravação própria com a devida autorização. Depois:
+**Limitações do Spotify (definidas por ele, não pelo convite):**
+- Quem **não está logado no Spotify** naquele navegador ouve só a **prévia de 30 segundos** (o player mostra a etiqueta "Prévia"). Quem está logado ouve a faixa completa.
+- O Spotify decide quando aceita o comando de tocar; no celular, às vezes é preciso tocar no próprio player.
+
+A faixa fica em [`client/src/audio/config.ts`](client/src/audio/config.ts). Para trocar sem mexer no código:
+```env
+VITE_SPOTIFY_TRACK_URL=https://open.spotify.com/track/ID_DA_FAIXA   # ou "off" para desligar
+```
+
+### Alternativa: arquivo de áudio (música completa para todos)
+
+Para que todos ouçam a música inteira, em loop e com início mais confiável, use um arquivo de áudio cuja publicação você tenha permissão para fazer: uma versão licenciada, um arranjo instrumental com licença de uso, uma trilha *royalty-free* ou uma gravação própria autorizada. O arquivo tem prioridade sobre o Spotify:
 
 ```env
-# arquivo colocado em client/public/audio/trilha.mp3
+# arquivo em client/public/audio/trilha.mp3, ou uma URL pública
 VITE_AUDIO_SRC=/audio/trilha.mp3
-# ou uma URL pública (ex.: o mesmo bucket do Supabase onde estão as fotos)
-# VITE_AUDIO_SRC=https://SEU-PROJETO.supabase.co/storage/v1/object/public/Casamento/trilha.mp3
 VITE_AUDIO_TITLE=Photograph — Ed Sheeran
 ```
 
-Dicas: MP3 ou M4A, 128 kbps (≈3–4 MB) e, se possível, começando já na parte mais emocionante.
+Dicas: MP3 ou M4A, 128 kbps (≈3–4 MB). No iPhone o volume é controlado só pelos botões do aparelho, então o fade-in não tem efeito.
 
-**B) Sem música.** Deixe `VITE_AUDIO_SRC` vazio: o convite funciona normalmente e o botão de áudio não aparece.
+Em qualquer caso, se a música falhar, o convite segue funcionando normalmente.
 
-**C) Player oficial do Spotify no rodapé** (legal, mas não é trilha de fundo). Informe o link da faixa:
-```env
-VITE_SPOTIFY_TRACK_URL=https://open.spotify.com/track/ID_DA_FAIXA
-```
-O player só carrega quando o convidado toca em "Ouvir nossa música".
-
-Como o áudio se comporta:
-
-- Só começa após o toque em **VIVER ESSE MOMENTO** (exigência dos navegadores móveis), com fade-in suave.
-- Botão discreto no canto superior direito, sempre acessível, para pausar e retomar.
-- Pausa ao trocar de aba ou de app (por exemplo, ao voltar para o WhatsApp) e retoma ao voltar.
-- Se o arquivo falhar ou o navegador bloquear, o convite segue normalmente e o botão permite tentar de novo.
-- No iPhone o volume é controlado apenas pelos botões do aparelho, então o fade não tem efeito (comportamento do iOS).
+> As variáveis `VITE_` entram no **build**: depois de alterá-las, gere e publique o site de novo.
 
 ## 8. Produção e publicação
 

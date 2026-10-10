@@ -1,6 +1,8 @@
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { AudioToggle } from './audio/AudioToggle';
+import { spotifyTrackId } from './audio/config';
+import { SpotifyPlayer } from './audio/SpotifyPlayer';
 import { useBackgroundAudio } from './audio/useBackgroundAudio';
 import { FilmGrain } from './components/FilmGrain';
 import { RsvpModal } from './components/RsvpModal';
@@ -13,6 +15,8 @@ import { Intro } from './sections/Intro';
 import { Invitation } from './sections/Invitation';
 import { Location } from './sections/Location';
 import { Rsvp } from './sections/Rsvp';
+
+const spotifyTrack = spotifyTrackId();
 
 export default function App() {
   const [started, setStarted] = useState(false);
@@ -38,9 +42,14 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <FilmGrain />
 
-        <AnimatePresence>{!started && <Intro onStart={start} withSound={audio.available} />}</AnimatePresence>
+        <AnimatePresence>
+          {!started && <Intro onStart={start} withSound={audio.available || Boolean(spotifyTrack)} />}
+        </AnimatePresence>
 
-        {started && <AudioToggle status={audio.status} onToggle={audio.toggle} />}
+        {/* Arquivo licenciado tem prioridade; sem ele, usa o player oficial do Spotify. */}
+        {audio.status !== 'disabled'
+          ? started && <AudioToggle status={audio.status} onToggle={audio.toggle} />
+          : spotifyTrack && <SpotifyPlayer trackId={spotifyTrack} started={started} />}
 
         <main inert={!started || rsvpOpen}>
           <Hero started={started} />
