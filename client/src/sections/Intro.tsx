@@ -126,7 +126,10 @@ export function Intro({ onStart, withSound }: Props) {
                   aria-hidden="true"
                   className="absolute inset-0 origin-left scale-x-0 bg-paper/10 transition-transform duration-700 ease-[var(--ease-cine)] group-hover:scale-x-100 group-active:scale-x-100"
                 />
-                <span className="relative">Viver esse momento</span>
+                <span className="relative flex flex-col items-center gap-1.5">
+                  <span className="text-[0.58rem] tracking-[0.28em] text-paper/60">Clique aqui para</span>
+                  <span>Viver esse momento</span>
+                </span>
               </button>
               {withSound && (
                 <p className="flex items-center gap-2 text-[0.65rem] tracking-[0.18em] text-paper/45 uppercase">
