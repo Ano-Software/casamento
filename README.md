@@ -6,7 +6,7 @@ Convite de casamento digital, cinematográfico e mobile-first, com confirmação
 
 | | Momento | Horário | Local |
 |---|---|---|---|
-| I | Casamento civil | 15h | Cartório do 2º Ofício de Castanhal — [Google Maps](https://maps.app.goo.gl/QGuHDsKwDNSM1q9Q7) |
+| I | Casamento civil | 15h30 (chegada às 15h20) | Cartório do 2º Ofício de Castanhal — [Google Maps](https://maps.app.goo.gl/QGuHDsKwDNSM1q9Q7) |
 | II | Sessão de fotos | Na sequência do civil (a definir) | Jardins Sollaris Condomínio — [Google Maps](https://maps.app.goo.gl/APvL5EhSRhX9P4mq6) |
 | III | Encontro noturno | A definir | Restaurante a definir (cada convidado paga o próprio consumo) |
 
@@ -38,8 +38,8 @@ A página é um pequeno filme vertical: um prólogo, o convite e os **três cap�
 | Abertura | "Algumas histórias são escritas para durar para sempre." → ADEMILSON & REGIANE → botão **VIVER ESSE MOMENTO** | — | Cartelas com fade e desfoque; um toque adianta direto para o botão (≈4 s) |
 | Prólogo · Nossa história | "Dois caminhos, uma escolha, uma vida inteira." | `casal2.jpeg` (principal, tela cheia) | Zoom lento de câmera e parallax discreto |
 | O noivado | "Um sim que nos trouxe até aqui. Outro que nos acompanhará para sempre." | `mao.jpeg` | Revelação circular que nasce do anel, como uma íris de cinema |
-| O convite | Nomes, data em destaque, sumário "Um dia, três momentos" (com links para cada capítulo) e contagem regressiva até as 15h | — | A "luz se acende": transição do escuro para o papel |
-| **I · O sim** | Casamento civil: "O primeiro sim. O começo de uma vida inteira.", **15h** em destaque, cartório e **COMO CHEGAR** | — | Duas alianças desenhadas em traço fino, sobre tom areia |
+| O convite | Nomes, data em destaque, sumário "Um dia, três momentos" (com links para cada capítulo) e contagem regressiva até as 15h30 | — | A "luz se acende": transição do escuro para o papel |
+| **I · O sim** | Casamento civil: "O primeiro sim. O começo de uma vida inteira.", **15h30** em destaque com aviso "Chegada às 15h20 · início pontual", cartório e **COMO CHEGAR** | — | Duas alianças desenhadas em traço fino, sobre tom areia |
 | **II · Memórias para sempre** | Sessão de fotos: "Depois do nosso sim, queremos eternizar esse momento.", Jardins Sollaris e **VER LOCALIZAÇÃO** | `casal2`, `mao` e `porta` como fotos impressas | Álbum com parallax em três velocidades, luz de entardecer |
 | **III · Uma noite para celebrar** | Encontro no restaurante, informações pendentes e o aviso sobre o consumo individual | — | Noite com brilho âmbar e luzes que cintilam como velas |
 | Sua presença | "Queremos você com a gente." + **CONFIRMAR PRESENÇA** | `casal1.jpeg` (fundo) | Formulário em modal (bottom sheet no celular) |

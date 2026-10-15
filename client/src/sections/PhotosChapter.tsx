@@ -4,7 +4,7 @@ import { ChapterLabel } from '../components/ChapterLabel';
 import { MapButton } from '../components/MapButton';
 import { Photo } from '../components/Photo';
 import { Reveal } from '../components/Reveal';
-import { INVITE, PHOTOS, type PhotoAsset } from '../config/invite';
+import { ALBUM, INVITE, type PhotoAsset } from '../config/invite';
 
 const { photos: p } = INVITE;
 
@@ -34,15 +34,16 @@ function Print({ photo, className, aspect, rotate, y, focus = '50% 50%', grade =
 
 /**
  * Capítulo II — Memórias para sempre. A sessão de fotos, como um álbum
- * aberto: três fotografias reais que deslizam em velocidades diferentes.
+ * aberto: quatro fotografias reais que deslizam em velocidades diferentes.
  */
 export function PhotosChapter() {
   const albumRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: albumRef, offset: ['start end', 'end start'] });
-  const yMain = useTransform(scrollYProgress, [0, 1], ['4%', '-4%']);
-  const yRings = useTransform(scrollYProgress, [0, 1], ['22%', '-18%']);
-  const yMirror = useTransform(scrollYProgress, [0, 1], ['30%', '-26%']);
+  const yA = useTransform(scrollYProgress, [0, 1], ['4%', '-4%']);
+  const yB = useTransform(scrollYProgress, [0, 1], ['22%', '-18%']);
+  const yC = useTransform(scrollYProgress, [0, 1], ['14%', '-12%']);
+  const yD = useTransform(scrollYProgress, [0, 1], ['26%', '-22%']);
   const still = '0%';
 
   return (
@@ -76,31 +77,40 @@ export function PhotosChapter() {
         </Reveal>
 
         {/* Álbum */}
-        <div ref={albumRef} className="relative mx-auto mt-14 aspect-[4/5.6] w-full">
+        <div ref={albumRef} className="relative mx-auto mt-14 aspect-[4/6.6] w-full">
           <Print
-            photo={PHOTOS.main}
-            aspect="9 / 16"
+            photo={ALBUM.passeio}
+            aspect="4 / 5.6"
             rotate={-2.5}
-            y={reduce ? still : yMain}
-            focus="50% 22%"
-            className="top-0 left-0 w-[62%]"
+            y={reduce ? still : yA}
+            focus="50% 20%"
+            className="top-0 left-0 w-[58%]"
           />
           <Print
-            photo={PHOTOS.rings}
+            photo={ALBUM.juntinhos}
             aspect="3 / 4"
             rotate={3}
-            y={reduce ? still : yRings}
-            focus="47% 51%"
+            y={reduce ? still : yB}
+            focus="50% 40%"
             grade="grade-tame"
-            className="top-[8%] right-0 w-[44%]"
+            className="top-[6%] right-0 w-[46%]"
           />
           <Print
-            photo={PHOTOS.mirror}
-            aspect="769 / 600"
-            rotate={-1.5}
-            y={reduce ? still : yMirror}
-            focus="50% 0%"
-            className="right-[4%] bottom-[2%] w-[52%]"
+            photo={ALBUM.festa}
+            aspect="4 / 5"
+            rotate={2}
+            y={reduce ? still : yC}
+            focus="50% 45%"
+            className="top-[45%] right-[2%] w-[50%]"
+          />
+          <Print
+            photo={ALBUM.espelho}
+            aspect="3 / 4"
+            rotate={-3}
+            y={reduce ? still : yD}
+            focus="50% 55%"
+            grade="grade-tame"
+            className="top-[52%] left-[2%] w-[48%]"
           />
         </div>
         <p className="mt-6 font-serif text-sm italic text-paper/50">Para guardar, para sempre.</p>

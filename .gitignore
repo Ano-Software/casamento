@@ -19,3 +19,6 @@ Thumbs.db
 *.log
 .vscode/*
 !.vscode/extensions.json
+
+# Originais das fotos (HEIC/Live Photos) — as versões web ficam em client/public/fotos
+/ar/

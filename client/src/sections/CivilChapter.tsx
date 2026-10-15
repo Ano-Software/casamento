@@ -55,6 +55,10 @@ export function CivilChapter() {
           <p className="mt-4 font-serif text-xl italic text-ink/80">
             {d.weekday}, {d.long}
           </p>
+          <p className="mx-auto mt-8 max-w-xs border-y border-ink/20 py-4 text-[0.95rem] leading-relaxed text-ink/85">
+            <span className="block font-serif text-lg italic">Chegada às {c.arrival}</span>
+            A cerimônia começa pontualmente às {c.time}, sem tolerância de atraso.
+          </p>
         </Reveal>
 
         <Reveal className="mt-10">

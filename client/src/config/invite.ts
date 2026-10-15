@@ -19,8 +19,10 @@ export const INVITE = {
   /** I — O casamento civil (o momento principal). */
   civil: {
     /** Horário de Brasília (UTC−3). Usado também pela contagem regressiva. */
-    iso: '2026-11-28T15:00:00-03:00',
-    time: '15h',
+    iso: '2026-11-28T15:30:00-03:00',
+    time: '15h30',
+    /** Horário de chegada pedido aos convidados: a cerimônia começa pontualmente. */
+    arrival: '15h20',
     venue: 'Cartório do 2º Ofício de Castanhal',
     /** Quebra editorial do nome do local. */
     venueLines: ['Cartório do 2º Ofício', 'de Castanhal'],
@@ -82,5 +84,33 @@ export const PHOTOS = {
     width: 960,
     height: 1280,
     alt: 'Regiane e Ademilson lado a lado, sorrindo',
+  },
+} satisfies Record<string, PhotoAsset>;
+
+/** Álbum do Capítulo II — fotos servidas pelo próprio site (client/public/fotos). */
+export const ALBUM = {
+  passeio: {
+    src: '/fotos/passeio.jpg',
+    width: 720,
+    height: 1280,
+    alt: 'Ademilson e Regiane sorrindo em uma selfie ao ar livre, à beira de um lago',
+  },
+  juntinhos: {
+    src: '/fotos/juntinhos.jpg',
+    width: 960,
+    height: 1280,
+    alt: 'Regiane e Ademilson juntinhos, sorrindo para a câmera',
+  },
+  espelho: {
+    src: '/fotos/espelho.jpg',
+    width: 720,
+    height: 1280,
+    alt: 'Ademilson e Regiane posando lado a lado em uma foto no espelho',
+  },
+  festa: {
+    src: '/fotos/festa.jpg',
+    width: 720,
+    height: 1280,
+    alt: 'Ademilson e Regiane sorrindo em uma festa com lanternas vermelhas',
   },
 } satisfies Record<string, PhotoAsset>;
