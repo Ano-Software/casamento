@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import { env, PROJECT_ROOT } from './config/env.js';
+import { photosRouter } from './routes/photos.js';
 import { rsvpRouter } from './routes/rsvp.js';
 
 export function createApp() {
@@ -23,7 +24,7 @@ export function createApp() {
               scriptSrc: ["'self'", "'unsafe-eval'", 'https://open.spotify.com', 'https://embed-cdn.spotifycdn.com'],
               styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
               fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-              imgSrc: ["'self'", 'data:', 'https://*.supabase.co'],
+              imgSrc: ["'self'", 'data:', 'blob:', 'https://*.supabase.co'],
               mediaSrc: ["'self'", 'https:', 'blob:'],
               connectSrc: ["'self'"],
               frameSrc: ['https://open.spotify.com'],
@@ -61,6 +62,14 @@ export function createApp() {
   api.get('/health', (_req, res) => res.json({ ok: true }));
   api.use(rsvpRouter);
   api.use((_req, res) => res.status(404).json({ ok: false, error: 'Rota não encontrada.' }));
+
+  // Fotos dos convidados: limites próprios (uploads grandes, galeria com muitas imagens).
+  const photos = express.Router();
+  if (env.allowedOrigins.length) {
+    photos.use(cors({ origin: env.allowedOrigins, methods: ['GET', 'POST'], maxAge: 600 }));
+  }
+  photos.use(photosRouter);
+  app.use('/api/fotos', photos);
 
   app.use('/api', api);
 

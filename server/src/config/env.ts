@@ -62,6 +62,17 @@ const schema = z.object({
   DB_SSL: bool(false),
   DATA_DIR: z.string().optional(),
 
+  // Fotos enviadas pelos convidados (/momentos) e galeria privada dos noivos (/fotos).
+  PHOTOS_ADMIN_PASSWORD: z.string().min(8, 'PHOTOS_ADMIN_PASSWORD precisa de ao menos 8 caracteres').optional(),
+  PHOTOS_MAX_MB: z.coerce.number().int().min(1).max(50).default(25),
+  PHOTOS_DIR: z.string().optional(),
+  SUPABASE_URL: z.url('SUPABASE_URL inválida').optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  SUPABASE_PHOTOS_BUCKET: z
+    .string()
+    .regex(/^[a-z0-9_-]+$/i, 'SUPABASE_PHOTOS_BUCKET inválido')
+    .default('momentos'),
+
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(1000).default(5),
   RATE_LIMIT_WINDOW_MIN: z.coerce.number().int().min(1).max(1440).default(15),
 });
@@ -127,6 +138,19 @@ export const env = {
       ssl: e.DB_SSL,
     },
     dataDir: path.resolve(e.DATA_DIR ?? path.join(SERVER_ROOT, 'data')),
+  },
+
+  photos: {
+    adminPassword: e.PHOTOS_ADMIN_PASSWORD,
+    maxBytes: e.PHOTOS_MAX_MB * 1024 * 1024,
+    // Supabase Storage quando a chave existir; senão, disco local.
+    driver: (e.SUPABASE_URL && e.SUPABASE_SERVICE_ROLE_KEY ? 'supabase' : 'file') as 'supabase' | 'file',
+    dir: path.resolve(e.PHOTOS_DIR ?? path.join(e.DATA_DIR ?? path.join(SERVER_ROOT, 'data'), 'fotos')),
+    supabase: {
+      url: (e.SUPABASE_URL ?? '').replace(/\/+$/, ''),
+      key: e.SUPABASE_SERVICE_ROLE_KEY ?? '',
+      bucket: e.SUPABASE_PHOTOS_BUCKET,
+    },
   },
 
   rateLimit: {

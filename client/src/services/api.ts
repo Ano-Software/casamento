@@ -1,4 +1,4 @@
-const BASE = (import.meta.env.VITE_API_URL?.trim() ?? '').replace(/\/+$/, '');
+export const BASE = (import.meta.env.VITE_API_URL?.trim() ?? '').replace(/\/+$/, '');
 const TIMEOUT_MS = 20_000;
 
 export interface RsvpConfig {

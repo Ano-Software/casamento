@@ -12,6 +12,11 @@ const server = app.listen(env.port, env.host, () => {
     `[server] Acompanhantes: ${env.rsvp.allowCompanions ? `permitidos (máx. ${env.rsvp.maxCompanions})` : 'desabilitados'}`,
   );
 
+  console.info(
+    `[server] Fotos dos convidados: ${env.photos.driver}${env.photos.driver === 'file' ? ` (${env.photos.dir})` : ` (bucket ${env.photos.supabase.bucket})`}` +
+      (env.photos.adminPassword ? '' : ' — galeria /fotos bloqueada: defina PHOTOS_ADMIN_PASSWORD'),
+  );
+
   if (mysqlStore) {
     void mysqlStore
       .ensureTable()
