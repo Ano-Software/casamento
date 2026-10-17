@@ -139,21 +139,24 @@ export default function Momentos() {
       </div>
 
       <form noValidate onSubmit={onSubmit} className="mx-auto mt-12 w-full max-w-xl">
-        <label htmlFor={nameId} className="text-[0.65rem] uppercase tracking-[0.24em] text-paper/60">
-          Seu nome <span className="normal-case tracking-normal text-paper/35">(opcional)</span>
-        </label>
-        <input
-          id={nameId}
-          type="text"
-          autoComplete="name"
-          autoCapitalize="words"
-          maxLength={60}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={sending}
-          placeholder="Para sabermos quem registrou"
-          className="mt-2 block w-full border-0 border-b border-paper/20 bg-transparent px-0 py-3 font-serif text-xl text-paper placeholder:text-paper/25 focus:border-paper/70 focus:outline-none"
-        />
+        {/* Campo do nome em destaque: cartão claro com letras escuras */}
+        <div className="bg-paper px-5 pt-5 pb-3 text-ink shadow-[0_12px_40px_rgb(0_0_0/0.35)]">
+          <label htmlFor={nameId} className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
+            Seu nome <span className="normal-case tracking-normal text-ink/45">(opcional)</span>
+          </label>
+          <input
+            id={nameId}
+            type="text"
+            autoComplete="name"
+            autoCapitalize="words"
+            maxLength={60}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={sending}
+            placeholder="Para sabermos quem registrou"
+            className="mt-2 block w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none disabled:opacity-60"
+          />
+        </div>
 
         <input
           ref={inputRef}
@@ -243,12 +246,6 @@ export default function Momentos() {
           <p className="mt-4 text-center text-xs text-paper/45">Mantenha esta página aberta até terminar.</p>
         )}
       </form>
-
-      <p className="mt-20 text-center">
-        <a href="/" className="text-[0.62rem] uppercase tracking-[0.3em] text-paper/40 transition-colors hover:text-paper/70">
-          Ver o convite
-        </a>
-      </p>
     </main>
   );
 }

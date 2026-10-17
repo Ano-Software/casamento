@@ -34,7 +34,7 @@ function Print({ photo, className, aspect, rotate, y, focus = '50% 50%', grade =
 
 /**
  * Capítulo II — Memórias para sempre. A sessão de fotos, como um álbum
- * aberto: quatro fotografias reais que deslizam em velocidades diferentes.
+ * aberto: três fotografias reais que deslizam em velocidades diferentes.
  */
 export function PhotosChapter() {
   const albumRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,6 @@ export function PhotosChapter() {
   const yA = useTransform(scrollYProgress, [0, 1], ['4%', '-4%']);
   const yB = useTransform(scrollYProgress, [0, 1], ['22%', '-18%']);
   const yC = useTransform(scrollYProgress, [0, 1], ['14%', '-12%']);
-  const yD = useTransform(scrollYProgress, [0, 1], ['26%', '-22%']);
   const still = '0%';
 
   return (
@@ -77,40 +76,31 @@ export function PhotosChapter() {
         </Reveal>
 
         {/* Álbum */}
-        <div ref={albumRef} className="relative mx-auto mt-14 aspect-[4/6.6] w-full">
+        <div ref={albumRef} className="relative mx-auto mt-14 aspect-[4/6] w-full">
           <Print
-            photo={ALBUM.passeio}
-            aspect="4 / 5.6"
+            photo={ALBUM.aniversario}
+            aspect="4 / 5.8"
             rotate={-2.5}
             y={reduce ? still : yA}
-            focus="50% 20%"
-            className="top-0 left-0 w-[58%]"
+            focus="50% 25%"
+            className="top-0 left-0 w-[56%]"
           />
           <Print
-            photo={ALBUM.juntinhos}
-            aspect="3 / 4"
+            photo={ALBUM.rodaGigante}
+            aspect="3 / 4.2"
             rotate={3}
             y={reduce ? still : yB}
-            focus="50% 40%"
+            focus="50% 30%"
             grade="grade-tame"
-            className="top-[6%] right-0 w-[46%]"
+            className="top-[8%] right-0 w-[48%]"
           />
           <Print
-            photo={ALBUM.festa}
-            aspect="4 / 5"
-            rotate={2}
+            photo={ALBUM.sorrisos}
+            aspect="4 / 3.6"
+            rotate={-1.5}
             y={reduce ? still : yC}
-            focus="50% 45%"
-            className="top-[45%] right-[2%] w-[50%]"
-          />
-          <Print
-            photo={ALBUM.espelho}
-            aspect="3 / 4"
-            rotate={-3}
-            y={reduce ? still : yD}
-            focus="50% 55%"
-            grade="grade-tame"
-            className="top-[52%] left-[2%] w-[48%]"
+            focus="50% 40%"
+            className="top-[52%] left-[16%] w-[66%]"
           />
         </div>
         <p className="mt-6 font-serif text-sm italic text-paper/50">Para guardar, para sempre.</p>
@@ -122,9 +112,6 @@ export function PhotosChapter() {
           </Reveal>
           <Reveal delay={0.15}>
             <p className="mt-4 font-serif text-xl italic text-sand">{p.time ?? p.timeFallback}</p>
-            {!p.time && (
-              <p className="mt-2 text-xs tracking-[0.04em] text-paper/45">O horário exato será informado em breve.</p>
-            )}
           </Reveal>
           <Reveal delay={0.25} className="mt-10">
             <MapButton href={p.mapsUrl} label="Ver localização" variant="outline" />

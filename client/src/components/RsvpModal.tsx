@@ -1,5 +1,5 @@
 ﻿import { AnimatePresence, m } from 'motion/react';
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type Ref } from 'react';
 import { ApiError, fetchRsvpConfig, submitRsvp, type RsvpConfig } from '../services/api';
 import { uuid } from '../lib/uuid';
 import { EASE_CINE } from '../lib/motion';
@@ -27,21 +27,30 @@ const SUCCESS = {
 const QUESTIONS = [
   { key: 'civil', title: 'Casamento civil', hint: `I · ${INVITE.civil.time}` },
   { key: 'photos', title: 'Sessão de fotos', hint: 'II · Em seguida' },
-  { key: 'dinner', title: 'Encontro noturno', hint: 'III · À noite' },
+  { key: 'dinner', title: 'Encontro noturno', hint: `III · ${INVITE.dinner.time ?? 'À noite'}` },
 ] as const;
 
 type MomentKey = (typeof QUESTIONS)[number]['key'];
 type Answers = Record<MomentKey, boolean | null>;
 const EMPTY_ANSWERS: Answers = { civil: null, photos: null, dinner: null };
 
-type Errors = Partial<Record<'fullName' | MomentKey | 'companions', string>>;
+type Errors = Partial<Record<'fullName' | 'secondName' | MomentKey | 'companions', string>>;
 
-function validate(name: string, answers: Answers, companions: number, cfg: RsvpConfig): Errors {
+const cleanName = (name: string) => name.replace(/\s+/g, ' ').trim();
+
+function nameError(name: string): string | undefined {
+  const clean = cleanName(name);
+  if (clean.length < 3 || (clean.match(/\p{L}/gu) ?? []).length < 3) return 'Informe o nome completo.';
+  if (clean.length > 120) return 'Use no máximo 120 caracteres.';
+  if (!NAME_PATTERN.test(clean)) return 'Use apenas letras, espaços, hífen ou apóstrofo.';
+}
+
+function validate(name: string, second: string, answers: Answers, companions: number, cfg: RsvpConfig): Errors {
   const errors: Errors = {};
-  const clean = name.replace(/\s+/g, ' ').trim();
-  if (clean.length < 3 || (clean.match(/\p{L}/gu) ?? []).length < 3) errors.fullName = 'Informe seu nome completo.';
-  else if (clean.length > 120) errors.fullName = 'Use no máximo 120 caracteres.';
-  else if (!NAME_PATTERN.test(clean)) errors.fullName = 'Use apenas letras, espaços, hífen ou apóstrofo.';
+  errors.fullName = nameError(name);
+  if (cleanName(second)) errors.secondName = nameError(second);
+  if (!errors.fullName) delete errors.fullName;
+  if (!errors.secondName) delete errors.secondName;
   for (const q of QUESTIONS) if (answers[q.key] === null) errors[q.key] = 'Escolha sim ou não.';
   const attendsAny = QUESTIONS.some((q) => answers[q.key]);
   if (cfg.allowCompanions && attendsAny && (companions < 0 || companions > cfg.maxCompanions)) {
@@ -53,12 +62,15 @@ function validate(name: string, answers: Answers, companions: number, cfg: RsvpC
 export function RsvpModal({ open, onClose }: Props) {
   const titleId = useId();
   const nameId = useId();
+  const secondId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const secondRef = useRef<HTMLInputElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
 
   const [config, setConfig] = useState<RsvpConfig>({ allowCompanions: false, maxCompanions: 0 });
   const [fullName, setFullName] = useState('');
+  const [secondName, setSecondName] = useState('');
   const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS);
   const attendsAny = QUESTIONS.some((q) => answers[q.key]);
   const [companions, setCompanions] = useState(0);
@@ -80,6 +92,7 @@ export function RsvpModal({ open, onClose }: Props) {
       // Nova resposta (ex.: outra pessoa da família) após um envio concluído.
       setDone(null);
       setFullName('');
+      setSecondName('');
       setAnswers(EMPTY_ANSWERS);
       setCompanions(0);
       requestId.current = uuid();
@@ -127,18 +140,20 @@ export function RsvpModal({ open, onClose }: Props) {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (sending) return;
-    const found = validate(fullName, answers, companions, config);
+    const found = validate(fullName, secondName, answers, companions, config);
     setErrors(found);
     setFormError('');
     if (Object.keys(found).length) {
       if (found.fullName) nameRef.current?.focus();
+      else if (found.secondName) secondRef.current?.focus();
       return;
     }
 
     setSending(true);
     try {
       await submitRsvp({
-        fullName: fullName.replace(/\s+/g, ' ').trim(),
+        fullName: cleanName(fullName),
+        secondName: cleanName(secondName) || null,
         civil: answers.civil!,
         photos: answers.photos!,
         dinner: answers.dinner!,
@@ -238,37 +253,39 @@ export function RsvpModal({ open, onClose }: Props) {
                       Você vem celebrar com a gente?
                     </h2>
 
-                    {/* Nome */}
-                    <div className="mt-9">
-                      <label htmlFor={nameId} className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
-                        Nome completo
-                      </label>
-                      <input
-                        ref={nameRef}
-                        id={nameId}
-                        name="fullName"
-                        type="text"
-                        autoComplete="name"
-                        autoCapitalize="words"
-                        enterKeyHint="next"
-                        maxLength={120}
-                        required
-                        value={fullName}
-                        onChange={(e) => {
-                          setFullName(e.target.value);
-                          if (errors.fullName) setErrors((x) => ({ ...x, fullName: undefined }));
-                        }}
-                        aria-invalid={Boolean(errors.fullName)}
-                        aria-describedby={errors.fullName ? `${nameId}-err` : undefined}
-                        className="mt-2 block w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink placeholder:text-ink/30 focus:border-ink focus:outline-none aria-[invalid=true]:border-[#9b3b2f]"
-                        placeholder="Como devemos chamar você"
-                      />
-                      {errors.fullName && (
-                        <p id={`${nameId}-err`} className="mt-2 text-xs text-[#9b3b2f]">
-                          {errors.fullName}
-                        </p>
-                      )}
-                    </div>
+                    {/* Nomes: até duas pessoas por confirmação */}
+                    <NameField
+                      ref={nameRef}
+                      id={nameId}
+                      name="fullName"
+                      label="1ª pessoa · Nome completo"
+                      placeholder="Seu nome completo"
+                      autoComplete="name"
+                      required
+                      value={fullName}
+                      error={errors.fullName}
+                      onChange={(v) => {
+                        setFullName(v);
+                        if (errors.fullName) setErrors((x) => ({ ...x, fullName: undefined }));
+                      }}
+                      className="mt-9"
+                    />
+                    <NameField
+                      ref={secondRef}
+                      id={secondId}
+                      name="secondName"
+                      label="2ª pessoa · Nome completo"
+                      optional
+                      placeholder="Quem vem com você"
+                      autoComplete="off"
+                      value={secondName}
+                      error={errors.secondName}
+                      onChange={(v) => {
+                        setSecondName(v);
+                        if (errors.secondName) setErrors((x) => ({ ...x, secondName: undefined }));
+                      }}
+                      className="mt-6"
+                    />
 
                     {/* Três momentos, respondidos de forma independente */}
                     <p className="mt-8 text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
@@ -325,7 +342,7 @@ export function RsvpModal({ open, onClose }: Props) {
                                 >
                                   <span className="mt-3 block border-l-2 border-gold/60 bg-gold/[0.07] px-3 py-2.5 font-serif text-[0.98rem] italic leading-snug text-ink/75">
                                     {INVITE.dinner.venue && INVITE.dinner.time
-                                      ? `Nos vemos em ${INVITE.dinner.venue}, às ${INVITE.dinner.time}. Cada convidado fica responsável pelo próprio consumo.`
+                                      ? `Nos vemos no ${INVITE.dinner.venue} (${INVITE.dinner.space}), às ${INVITE.dinner.time}. Cada convidado fica responsável pelo próprio consumo.`
                                       : 'O restaurante e o horário serão divulgados em breve. Cada convidado fica responsável pelo próprio consumo.'}
                                   </span>
                                 </m.p>
@@ -419,6 +436,54 @@ export function RsvpModal({ open, onClose }: Props) {
         </m.div>
       )}
     </AnimatePresence>
+  );
+}
+
+interface NameFieldProps {
+  ref: Ref<HTMLInputElement>;
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  autoComplete: string;
+  value: string;
+  error?: string;
+  required?: boolean;
+  optional?: boolean;
+  className?: string;
+  onChange: (value: string) => void;
+}
+
+function NameField({ ref, id, name, label, placeholder, autoComplete, value, error, required, optional, className, onChange }: NameFieldProps) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="text-[0.65rem] uppercase tracking-[0.24em] text-ink/70">
+        {label}
+        {optional && <span className="normal-case tracking-normal text-ink/45"> (opcional)</span>}
+      </label>
+      <input
+        ref={ref}
+        id={id}
+        name={name}
+        type="text"
+        autoComplete={autoComplete}
+        autoCapitalize="words"
+        enterKeyHint="next"
+        maxLength={120}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-err` : undefined}
+        className="mt-2 block w-full border-0 border-b border-ink/25 bg-transparent px-0 py-3 font-serif text-xl text-ink placeholder:text-ink/30 focus:border-ink focus:outline-none aria-[invalid=true]:border-[#9b3b2f]"
+        placeholder={placeholder}
+      />
+      {error && (
+        <p id={`${id}-err`} className="mt-2 text-xs text-[#9b3b2f]">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

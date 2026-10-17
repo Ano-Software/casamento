@@ -65,6 +65,7 @@ rsvpRouter.post('/rsvp', submitLimiter, async (req: Request, res: Response) => {
   const record: RsvpRecord = {
     requestId: input.requestId,
     fullName: input.fullName,
+    secondName: input.secondName,
     civil: input.civil,
     photos: input.photos,
     dinner: input.dinner,

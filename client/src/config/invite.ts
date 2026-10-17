@@ -40,14 +40,15 @@ export const INVITE = {
 
   /** III — Encontro noturno no restaurante. */
   dinner: {
-    /** Ex.: 'Restaurante Exemplo'. */
-    venue: null as string | null,
-    /** Ex.: 'Av. Exemplo, 123 — Castanhal'. */
+    venue: 'Camarote Gastrobar' as string | null,
+    /** Espaço reservado dentro do restaurante. */
+    space: 'Espaço Haru',
     address: null as string | null,
-    /** Ex.: '20h'. */
-    time: null as string | null,
+    time: '20h' as string | null,
     /** Link do Google Maps do restaurante. */
-    mapsUrl: null as string | null,
+    mapsUrl: 'https://maps.app.goo.gl/8FPnJK5zpUvNAH8W9' as string | null,
+    /** Logos do Camarote e do Haru (fundo preto, mesclado ao fundo da seção). */
+    logo: { src: '/logos/camarote-haru.png', width: 397, height: 487 },
   },
 };
 
@@ -89,28 +90,22 @@ export const PHOTOS = {
 
 /** Álbum do Capítulo II — fotos servidas pelo próprio site (client/public/fotos). */
 export const ALBUM = {
-  passeio: {
-    src: '/fotos/passeio.jpg',
+  aniversario: {
+    src: '/fotos/aniversario.jpg',
     width: 720,
     height: 1280,
-    alt: 'Ademilson e Regiane sorrindo em uma selfie ao ar livre, à beira de um lago',
+    alt: 'Regiane e Ademilson em uma selfie numa festa decorada com balões lilás',
   },
-  juntinhos: {
-    src: '/fotos/juntinhos.jpg',
-    width: 960,
-    height: 1280,
-    alt: 'Regiane e Ademilson juntinhos, sorrindo para a câmera',
-  },
-  espelho: {
-    src: '/fotos/espelho.jpg',
+  rodaGigante: {
+    src: '/fotos/roda-gigante.jpg',
     width: 720,
     height: 1280,
-    alt: 'Ademilson e Regiane posando lado a lado em uma foto no espelho',
+    alt: 'Ademilson e Regiane sorrindo à noite, com as luzes da cidade ao fundo',
   },
-  festa: {
-    src: '/fotos/festa.jpg',
-    width: 720,
-    height: 1280,
-    alt: 'Ademilson e Regiane sorrindo em uma festa com lanternas vermelhas',
+  sorrisos: {
+    src: '/fotos/sorrisos.jpg',
+    width: 1200,
+    height: 1600,
+    alt: 'Regiane e Ademilson lado a lado, sorrindo em uma selfie',
   },
 } satisfies Record<string, PhotoAsset>;

@@ -8,6 +8,8 @@ export interface RsvpConfig {
 
 export interface RsvpPayload {
   fullName: string;
+  /** Segunda pessoa (opcional). */
+  secondName: string | null;
   civil: boolean;
   photos: boolean;
   dinner: boolean;

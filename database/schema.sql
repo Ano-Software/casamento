@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS rsvps (
   -- quando o convidado reenvia após uma falha de conexão.
   request_id   CHAR(36)         NOT NULL,
   full_name    VARCHAR(120)     NOT NULL,
+  second_name  VARCHAR(120)     NULL,                  -- segunda pessoa (opcional)
   civil        TINYINT(1)       NOT NULL,              -- I   casamento civil   (1 = sim)
   photos       TINYINT(1)       NOT NULL,              -- II  sessão de fotos   (1 = sim)
   dinner       TINYINT(1)       NOT NULL,              -- III encontro noturno  (1 = sim)

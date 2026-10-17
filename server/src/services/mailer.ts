@@ -35,10 +35,13 @@ function buildContent(r: RsvpRecord) {
   const answer = attendsAny ? 'Confirmou presença' : 'Não poderá participar de nenhum momento';
   const rows: [string, string][] = [
     ['Convidado', r.fullName],
+  ];
+  if (r.secondName) rows.push(['Segunda pessoa', r.secondName]);
+  rows.push(
     ['Casamento civil', yesNo(r.civil)],
     ['Sessão de fotos', yesNo(r.photos)],
     ['Encontro noturno', yesNo(r.dinner)],
-  ];
+  );
   if (env.rsvp.allowCompanions && attendsAny) rows.push(['Acompanhantes', String(r.companions)]);
   rows.push(['Enviado em', `${formatDate(r.createdAt)} (horário de Brasília)`]);
 

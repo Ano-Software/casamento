@@ -6,6 +6,8 @@ import { env } from '../config/env.js';
 export interface RsvpRecord {
   requestId: string;
   fullName: string;
+  /** Segunda pessoa da mesma confirmação (opcional). */
+  secondName: string | null;
   /** Participação em cada um dos três momentos. */
   civil: boolean;
   photos: boolean;
@@ -61,6 +63,7 @@ class MysqlStore implements RsvpStore {
             id           BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
             request_id   CHAR(36)         NOT NULL,
             full_name    VARCHAR(120)     NOT NULL,
+            second_name  VARCHAR(120)     NULL,
             civil        TINYINT(1)       NOT NULL,
             photos       TINYINT(1)       NOT NULL,
             dinner       TINYINT(1)       NOT NULL,
@@ -69,6 +72,14 @@ class MysqlStore implements RsvpStore {
             UNIQUE KEY uq_rsvps_request_id (request_id),
             KEY idx_rsvps_created_at (created_at)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+        )
+        // Tabelas criadas antes do campo da segunda pessoa: adiciona a coluna.
+        .then(() =>
+          this.getPool()
+            .query(`ALTER TABLE \`${this.cfg.table}\` ADD COLUMN second_name VARCHAR(120) NULL AFTER full_name`)
+            .catch((err) => {
+              if ((err as { errno?: number }).errno !== 1060) throw err; // 1060: coluna já existe
+            }),
         )
         .then(() => undefined)
         .catch((err) => {
@@ -84,11 +95,12 @@ class MysqlStore implements RsvpStore {
     // INSERT IGNORE + chave única em request_id: reenvios não duplicam.
     const [result] = await this.getPool().execute<ResultSetHeader>(
       `INSERT IGNORE INTO \`${this.cfg.table}\`
-         (request_id, full_name, civil, photos, dinner, companions, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         (request_id, full_name, second_name, civil, photos, dinner, companions, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         record.requestId,
         record.fullName,
+        record.secondName,
         record.civil ? 1 : 0,
         record.photos ? 1 : 0,
         record.dinner ? 1 : 0,

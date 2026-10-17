@@ -34,7 +34,7 @@ function Detail({ label, value }: { label: string; value: string | null }) {
  * atmosfera acolhedora, informações pendentes e o aviso sobre o consumo.
  */
 export function NightChapter() {
-  const venue = n.venue ? [n.venue, n.address].filter(Boolean).join(' — ') : null;
+  const venue = n.venue ? [n.venue, n.space, n.address].filter(Boolean).join(' — ') : null;
 
   return (
     <section
@@ -81,7 +81,14 @@ export function NightChapter() {
             Um encontro para celebrar
           </h2>
           <p className="mx-auto mt-6 max-w-[34ch] text-[0.95rem] font-light leading-relaxed text-paper/75">
-            À noite, nos reuniremos em um restaurante para brindar ao amor, à vida e ao início dessa nova etapa.
+            {pending ? (
+              'À noite, nos reuniremos em um restaurante para brindar ao amor, à vida e ao início dessa nova etapa.'
+            ) : (
+              <>
+                Às {n.time}, nos reuniremos no {n.venue}, no {n.space}, para brindar ao amor, à vida e ao início dessa
+                nova etapa.
+              </>
+            )}
             {pending && (
               <>
                 <br />
@@ -94,6 +101,14 @@ export function NightChapter() {
         {/* Local e horário aparecem assim que forem definidos em config/invite.ts */}
         {!pending && (
           <Reveal className="mt-10">
+            <img
+              src={n.logo.src}
+              width={n.logo.width}
+              height={n.logo.height}
+              alt={`${n.venue} — ${n.space}`}
+              loading="lazy"
+              className="mx-auto mb-10 h-auto w-52 mix-blend-screen"
+            />
             <dl className="mx-auto max-w-sm border-y border-paper/10 px-1">
               <Detail label="Local" value={venue} />
               <Detail label="Horário" value={n.time} />
