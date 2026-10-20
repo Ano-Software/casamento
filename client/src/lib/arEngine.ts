@@ -112,7 +112,8 @@ export async function startAr(opts: {
     cam.playsInline = true;
     cam.setAttribute('muted', '');
     cam.setAttribute('playsinline', '');
-    Object.assign(cam.style, { position: 'absolute', objectFit: 'cover' });
+    // maxWidth: o CSS base limita vídeos a 100% da largura, o que impediria cobrir a tela.
+    Object.assign(cam.style, { position: 'absolute', objectFit: 'cover', maxWidth: 'none' });
     container.appendChild(cam);
     cleanups.push(() => cam.remove());
     cam.srcObject = stream;
@@ -120,6 +121,12 @@ export async function startAr(opts: {
       cam.readyState >= 1 ? resolve() : cam.addEventListener('loadedmetadata', () => resolve(), { once: true }),
     );
     await cam.play().catch(() => {});
+    // O MindAR lê os quadros pelos atributos width/height (sem eles, recebe imagem vazia).
+    const syncCamSize = () => {
+      cam.width = cam.videoWidth;
+      cam.height = cam.videoHeight;
+    };
+    syncCamSize();
 
     // Cena 3D transparente por cima da câmera.
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -202,6 +209,7 @@ export async function startAr(opts: {
 
     // Ajusta câmera do vídeo e câmera 3D à tela (mesma lógica do MindARThree).
     const resize = () => {
+      syncCamSize();
       const cw = container.clientWidth;
       const ch = container.clientHeight;
       const inputRatio = controller.inputWidth / controller.inputHeight;
@@ -245,7 +253,7 @@ export async function startAr(opts: {
 }
 
 /** Plano com o vídeo; com `chromaKey`, a cor de fundo vira transparente. */
-function createVideoPlane(video: HTMLVideoElement, { chromaKey, scale }: RealidadeVideo) {
+function createVideoPlane(video: HTMLVideoElement, { chromaKey, scale, offset }: RealidadeVideo) {
   const texture = new THREE.VideoTexture(video);
   let material: THREE.Material;
 
@@ -293,6 +301,7 @@ function createVideoPlane(video: HTMLVideoElement, { chromaKey, scale }: Realida
 
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
   mesh.userData.texture = texture;
+  mesh.position.set(offset.x, offset.y, 0);
   const fit = () => mesh.scale.set(scale, (scale * video.videoHeight) / video.videoWidth || scale, 1);
   fit();
   video.addEventListener('loadedmetadata', fit);

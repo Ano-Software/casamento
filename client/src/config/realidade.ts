@@ -18,8 +18,14 @@ export const REALIDADE = {
        * "recortados" sobre o desenho. `null` mostra o vídeo inteiro, como um quadro.
        */
       chromaKey: null as string | null,
-      /** Largura do vídeo em relação à largura do desenho (1 = mesma largura). */
-      scale: 1,
+      /**
+       * Largura do vídeo em relação à largura da imagem compilada (1 = mesma largura).
+       * O alvo é o cartão inteiro (1480 x 2100); 0.392 deixa o vídeo vertical com a
+       * altura da moldura dourada do desenho (1060 px).
+       */
+      scale: 0.392,
+      /** Deslocamento do centro do vídeo, em larguras da imagem (x: direita, y: para cima). */
+      offset: { x: 0, y: 0.0155 },
     },
   ],
 };
