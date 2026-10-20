@@ -7,6 +7,7 @@ import './styles/index.css';
 const PAGES: Record<string, ReturnType<typeof lazy>> = {
   '/momentos': lazy(() => import('./pages/Momentos')),
   '/fotos': lazy(() => import('./pages/Fotos')),
+  '/realidade': lazy(() => import('./pages/Realidade')),
 };
 
 const Page = PAGES[window.location.pathname.replace(/\/+$/, '').toLowerCase()];

@@ -352,6 +352,7 @@ A aba **Exportar** do phpMyAdmin gera CSV ou planilha.
 - **Paleta e fontes:** bloco `@theme` em [`client/src/styles/index.css`](client/src/styles/index.css)
 - **Imagem de compartilhamento e título:** [`client/index.html`](client/index.html)
 - **Acompanhantes:** `RSVP_ALLOW_COMPANIONS` e `RSVP_MAX_COMPANIONS` no `.env` (sem novo build)
+- **Realidade aumentada (`/realidade`):** o desenho impresso ganha vida pela câmera. Coloque `alvo.mind` (gerado no [compilador do MindAR](https://hiukim.github.io/mind-ar-js-doc/tools/compile)) e `video.mp4` em [`client/public/ar/`](client/public/ar/); opções (fundo verde, tamanho, vários desenhos) em [`client/src/config/realidade.ts`](client/src/config/realidade.ts). O motor de rastreamento fica em `client/public/vendor/mindar/` (MindAR 1.2.5, MIT) — não vem do npm porque o pacote depende de um módulo nativo que quebra o build da hospedagem.
 
 ## 12. Checklist antes de enviar o link
 

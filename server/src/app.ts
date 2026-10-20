@@ -27,6 +27,8 @@ export function createApp() {
               imgSrc: ["'self'", 'data:', 'blob:', 'https://*.supabase.co'],
               mediaSrc: ["'self'", 'https:', 'blob:'],
               connectSrc: ["'self'"],
+              // Rastreamento da realidade aumentada (/realidade) roda em workers criados via blob:.
+              workerSrc: ["'self'", 'blob:'],
               frameSrc: ['https://open.spotify.com'],
               objectSrc: ["'none'"],
               baseUri: ["'self'"],

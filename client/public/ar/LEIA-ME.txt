@@ -1,0 +1,11 @@
+Arquivos da página /realidade (desenho impresso que ganha vida pela câmera)
+
+  alvo.mind   O desenho "compilado" para o rastreamento. Gere em:
+              https://hiukim.github.io/mind-ar-js-doc/tools/compile
+              (envie a MESMA imagem que vai para a gráfica e clique em Download).
+
+  video.mp4   O vídeo de vocês (MP4/H.264, vertical ou quadrado, até ~20 MB).
+
+Os nomes e as opções (fundo verde, tamanho) ficam em client/src/config/realidade.ts.
+Vários desenhos: envie todas as imagens juntas ao compilador e liste um vídeo
+para cada uma, na mesma ordem.
