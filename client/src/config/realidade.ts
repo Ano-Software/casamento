@@ -20,12 +20,12 @@ export const REALIDADE = {
       chromaKey: null as string | null,
       /**
        * Largura do vídeo em relação à largura da imagem compilada (1 = mesma largura).
-       * O alvo é o cartão inteiro (1480 x 2100); 0.392 deixa o vídeo vertical com a
-       * altura da moldura dourada do desenho (1060 px).
+       * O alvo é o banner horizontal (2098 x 749, altura = 0.357 da largura); com o
+       * vídeo 9:16, 0.2 deixa o vídeo com a altura do banner.
        */
-      scale: 0.392,
-      /** Deslocamento do centro do vídeo, em larguras da imagem (x: direita, y: para cima). */
-      offset: { x: 0, y: 0.0155 },
+      scale: 0.2,
+      /** Deslocamento do centro do vídeo, em larguras da imagem (x: direita, y: para cima). Fica sobre a foto do casal. */
+      offset: { x: -0.29, y: 0 },
     },
   ],
 };
