@@ -156,7 +156,7 @@ export async function startAr(opts: {
         (mesh.material as THREE.Material).dispose();
         (mesh.userData.texture as THREE.Texture).dispose();
       });
-      return { group, visible: false };
+      return { group, mesh, visible: false };
     });
 
     const [mindar, buffer] = await Promise.all([mindarReq, targetReq]).catch((err) => {
@@ -236,7 +236,11 @@ export async function startAr(opts: {
 
     controller.dummyRun(cam); // aquece a GPU (a primeira detecção é lenta)
     controller.processVideo(cam);
-    renderer.setAnimationLoop(() => renderer.render(scene, camera));
+    renderer.setAnimationLoop(() => {
+      scene.updateMatrixWorld();
+      for (const a of anchors) if (a.visible) fitToScreen(a.mesh, camera);
+      renderer.render(scene, camera);
+    });
 
     return {
       stop,
@@ -249,6 +253,29 @@ export async function startAr(opts: {
   } catch (err) {
     stop();
     throw err instanceof ArError ? err : new ArError('failed');
+  }
+}
+
+/** Fração máxima da tela que o vídeo pode ocupar (na largura e na altura). */
+const MAX_SCREEN = 0.92;
+const corner = new THREE.Vector3();
+
+/** Volta o plano ao tamanho configurado e o reduz se, projetado, passar da tela. */
+function fitToScreen(mesh: THREE.Mesh, camera: THREE.Camera) {
+  const [w, h] = mesh.userData.size as [number, number];
+  mesh.scale.set(w, h, 1);
+  mesh.updateMatrixWorld();
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [x, y] of [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]) {
+    corner.set(x, y, 0).applyMatrix4(mesh.matrixWorld).project(camera);
+    minX = Math.min(minX, corner.x); maxX = Math.max(maxX, corner.x);
+    minY = Math.min(minY, corner.y); maxY = Math.max(maxY, corner.y);
+  }
+  // Coordenadas normalizadas: a tela inteira mede 2 em cada eixo.
+  const span = Math.max(maxX - minX, maxY - minY) / 2;
+  if (span > MAX_SCREEN) {
+    const k = MAX_SCREEN / span;
+    mesh.scale.set(w * k, h * k, 1);
   }
 }
 
@@ -302,7 +329,11 @@ function createVideoPlane(video: HTMLVideoElement, { chromaKey, scale, offset }:
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
   mesh.userData.texture = texture;
   mesh.position.set(offset.x, offset.y, 0);
-  const fit = () => mesh.scale.set(scale, (scale * video.videoHeight) / video.videoWidth || scale, 1);
+  // Tamanho configurado; a cada quadro, `fitToScreen` pode reduzi-lo para caber na tela.
+  const fit = () => {
+    mesh.userData.size = [scale, (scale * video.videoHeight) / video.videoWidth || scale];
+    mesh.scale.set(mesh.userData.size[0], mesh.userData.size[1], 1);
+  };
   fit();
   video.addEventListener('loadedmetadata', fit);
   return mesh;
